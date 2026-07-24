@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LocationMethod {
+  GPS
+  MAP_PIN
+  ADDRESS_SEARCH
+}
+
+// Anonymous double-parking report. Deliberately has no user/device identifier
+// so reports cannot be traced back to a reporter.
+model Report {
+  id             String         @id @default(cuid())
+  latitude       Float
+  longitude      Float
+  address        String?
+  locationMethod LocationMethod
+  reportedAt     DateTime       @default(now())
+  createdAt      DateTime       @default(now())
+
+  @@index([reportedAt])
+  @@index([latitude, longitude])
+}

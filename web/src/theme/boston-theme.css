@@ -1,0 +1,101 @@
+:root {
+  /* City of Boston-inspired civic palette. Navy/gold pairing meets WCAG AA
+     contrast against white and against each other at the sizes used below. */
+  --boston-navy-900: #071426;
+  --boston-navy-800: #0c2340;
+  --boston-navy-700: #163862;
+  --boston-navy-100: #e7ecf3;
+  --boston-gold-500: #ffb81c;
+  --boston-gold-700: #a86e00;
+  --boston-red-600: #c8102e;
+  --boston-green-700: #157a4a;
+
+  --color-bg: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-text: #101318;
+  --color-text-muted: #48505c;
+  --color-border: #d7dce2;
+  --color-focus-ring: #1a73e8;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --font-sans:
+    "Helvetica Neue", Arial, "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Every interactive element gets a highly visible focus ring — required for
+   keyboard and switch-access users, and easy to lose if left to defaults
+   once buttons get custom backgrounds. */
+:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: var(--space-2);
+  z-index: 1000;
+  background: var(--boston-navy-800);
+  color: white;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+}
+
+.skip-link:focus-visible {
+  left: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

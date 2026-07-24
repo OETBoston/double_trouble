@@ -1,0 +1,58 @@
+.header {
+  background: var(--boston-navy-800);
+  color: white;
+  padding: var(--space-3) var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.brandRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.cityTag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--boston-gold-500);
+}
+
+.title {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.navLink,
+.navLinkActive {
+  color: white;
+  text-decoration: none;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+
+.navLink:hover {
+  background: var(--boston-navy-700);
+}
+
+/* The default blue focus ring falls below WCAG 1.4.11's 3:1 non-text
+   contrast minimum against this dark navy background; gold clears it. */
+.navLink:focus-visible,
+.navLinkActive:focus-visible {
+  outline-color: var(--boston-gold-500);
+}
+
+.navLinkActive {
+  background: var(--boston-gold-500);
+  color: var(--boston-navy-900);
+}

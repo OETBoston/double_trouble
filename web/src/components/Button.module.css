@@ -1,0 +1,47 @@
+.button {
+  font-size: 1rem;
+  font-weight: 700;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  cursor: pointer;
+  min-height: 48px;
+  line-height: 1.2;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.primary {
+  background: var(--boston-navy-800);
+  color: white;
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--boston-navy-700);
+}
+
+.secondary {
+  background: white;
+  color: var(--boston-navy-800);
+  border-color: var(--boston-navy-800);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--boston-navy-100);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--boston-navy-800);
+  text-decoration: underline;
+  padding: var(--space-2) var(--space-3);
+  min-height: auto;
+}

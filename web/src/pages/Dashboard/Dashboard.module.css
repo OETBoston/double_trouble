@@ -1,0 +1,180 @@
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-7);
+}
+
+.page h1 {
+  color: var(--boston-navy-800);
+  margin-bottom: var(--space-2);
+}
+
+.subhead {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-5);
+}
+
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.filterHeading {
+  font-weight: 700;
+  color: var(--boston-navy-800);
+}
+
+.presetButtons {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.preset,
+.presetActive {
+  border: 2px solid var(--color-border);
+  background: white;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.presetActive {
+  background: var(--boston-navy-800);
+  border-color: var(--boston-navy-800);
+  color: white;
+}
+
+.customRange {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.customRange label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  gap: 2px;
+}
+
+.liveToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.liveDotOn,
+.liveDotOff {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.liveDotOn {
+  background: var(--boston-red-600);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.liveDotOff {
+  background: var(--color-border);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.heatMapWrapper {
+  position: relative;
+  margin-bottom: var(--space-6);
+}
+
+.heatMap {
+  width: 100%;
+  height: 420px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.liveBadge {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  background: var(--boston-red-600);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+
+.metricsGrid h3 {
+  margin-top: 0;
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+}
+
+.wideCard {
+  grid-column: 1 / -1;
+}
+
+.bigNumber {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--boston-navy-800);
+  margin: 0;
+}
+
+.metricCaption {
+  color: var(--color-text-muted);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.streetList {
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.streetList li {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.streetName {
+  font-weight: 600;
+}
+
+.streetCount {
+  color: var(--color-text-muted);
+}
+
+.errorText {
+  color: var(--boston-red-600);
+  font-weight: 600;
+}
