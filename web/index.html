@@ -8,6 +8,12 @@
       name="description"
       content="Quickly and anonymously report an illegally double-parked car to the City of Boston."
     />
+    <!-- iOS ignores parts of the web app manifest below; Safari needs these
+         to treat an installed icon as a standalone app instead of opening
+         a browser tab with the address bar visible. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="BOS Parking" />
     <link rel="icon" type="image/png" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <title>Report Double Parking — City of Boston</title>

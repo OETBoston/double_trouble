@@ -46,6 +46,9 @@ export function ReportFlow() {
         locationMethod: location.method,
         reportedAt: new Date().toISOString(),
       });
+      // Brief confirmation buzz on devices that support it; a no-op
+      // elsewhere (desktop browsers simply lack navigator.vibrate).
+      navigator.vibrate?.(60);
       setStep("success");
     } catch {
       setSubmitError("We couldn't submit your report. Check your connection and try again.");

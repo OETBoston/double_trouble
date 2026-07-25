@@ -2,6 +2,10 @@
   background: var(--boston-navy-800);
   color: white;
   padding: var(--space-3) var(--space-5);
+  /* Keeps the brand row clear of the iPhone notch/dynamic island when
+     installed as a standalone app (requires viewport-fit=cover, already
+     set in index.html). */
+  padding-top: max(var(--space-3), env(safe-area-inset-top));
   display: flex;
   align-items: center;
   justify-content: space-between;

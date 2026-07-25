@@ -45,12 +45,32 @@ body,
   min-height: 100%;
 }
 
+html {
+  /* Stops the elastic rubber-band scroll past the top/bottom of the page —
+     that bounce is one of the clearest "this is just a website" tells on
+     iOS Safari when installed as a standalone app. */
+  overscroll-behavior-y: none;
+}
+
 body {
   margin: 0;
   font-family: var(--font-sans);
   background: var(--color-bg);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
+  /* Removes the gray tap flash Android/iOS browsers show on click, which
+     reads as "web page" rather than "app". */
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+[role="button"],
+input[type="checkbox"],
+input[type="radio"] {
+  /* Skips the ~300ms double-tap-to-zoom delay mobile browsers apply while
+     waiting to see if a tap is the start of a double-tap. */
+  touch-action: manipulation;
 }
 
 /* Every interactive element gets a highly visible focus ring — required for
