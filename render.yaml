@@ -1,0 +1,64 @@
+# Render Blueprint — deploys the whole stack (API, Postgres, static
+# frontend) from this repo in one go. See:
+# https://render.com/docs/blueprint-spec
+#
+# The API and frontend URLs below are hardcoded to match the `name` fields
+# in this file (Render assigns <name>.onrender.com). If you rename either
+# service, update CORS_ORIGIN and VITE_API_URL to match, or the frontend
+# won't be able to reach the API.
+#
+# No PostGIS extension is needed — the schema only uses plain lat/lng
+# Float columns, so Render's standard Postgres is sufficient.
+#
+# After the first deploy, set VITE_MAPBOX_TOKEN manually in the
+# boston-parking-web service's Environment tab (kept out of this file
+# since it's marked sync: false below).
+#
+# Free-tier notes: the API web service spins down after 15 min idle and
+# takes ~20-30s to wake on the next request — hit /health a couple of
+# minutes before a live demo to warm it up, or switch its plan to
+# "starter" for the day. Render's free Postgres also auto-expires after
+# 90 days, which is a non-issue for a demo but not for anything longer-lived.
+
+databases:
+  - name: boston-parking-db
+    plan: free
+    postgresMajorVersion: "16"
+
+services:
+  - type: web
+    name: boston-parking-api
+    env: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && npm run start
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: boston-parking-db
+          property: connectionString
+      - key: PORT
+        value: "4000"
+      - key: NODE_VERSION
+        value: "20.10.0"
+      - key: CORS_ORIGIN
+        value: https://boston-parking-web.onrender.com
+
+  - type: web
+    name: boston-parking-web
+    env: static
+    plan: free
+    rootDir: web
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://boston-parking-api.onrender.com
+      - key: VITE_MAPBOX_TOKEN
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
