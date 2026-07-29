@@ -1,0 +1,50 @@
+name: Non-functional requirement
+description: Propose a quality-attribute requirement (performance, accessibility, security, reliability, etc.)
+title: "[NFR]: "
+labels: ["type:non-functional", "needs-triage"]
+body:
+  - type: dropdown
+    id: attribute
+    attributes:
+      label: Quality attribute
+      options:
+        - Performance
+        - Accessibility
+        - Security
+        - Reliability
+        - Privacy
+        - Usability
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current behavior
+      description: What happens today, and why it falls short.
+    validations:
+      required: true
+  - type: textarea
+    id: target
+    attributes:
+      label: Target / metric
+      description: The measurable bar this needs to clear.
+      placeholder: |
+        e.g. "Dashboard's initial load completes in under 2s on a throttled 4G connection."
+        e.g. "Every interactive element in the report flow is reachable and operable via keyboard alone."
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: How to verify
+      description: How we'll confirm this is met — test type, tool, or manual check. This becomes the test plan for the implementing PR.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Related issues, constraints, prior incidents that motivated this, etc.
+    validations:
+      required: false
