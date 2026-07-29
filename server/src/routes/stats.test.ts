@@ -55,33 +55,38 @@ describe("GET /api/stats", () => {
     expect(res.body.peakDay).toBeNull();
   });
 
-  it("buckets reports by hour and day of week", async () => {
+  it("buckets reports by hour and day of week in Eastern time, regardless of server TZ", async () => {
     vi.mocked(prisma.report.findMany).mockResolvedValue([
-      report({ reportedAt: new Date("2026-01-05T09:15:00.000Z") }), // Monday, 9am UTC
-      report({ reportedAt: new Date("2026-01-05T09:45:00.000Z") }), // Monday, 9am UTC
-      report({ reportedAt: new Date("2026-01-06T17:00:00.000Z") }), // Tuesday, 5pm UTC
+      report({ reportedAt: new Date("2026-01-05T09:15:00.000Z") }), // Mon 4:15am ET (Jan = EST, UTC-5)
+      report({ reportedAt: new Date("2026-01-05T09:45:00.000Z") }), // Mon 4:45am ET
+      report({ reportedAt: new Date("2026-01-06T17:00:00.000Z") }), // Tue 12:00pm ET
     ] as never);
 
     const res = await request(buildApp()).get("/api/stats");
 
     expect(res.body.totalReports).toBe(3);
-    const hour9 = res.body.byHour.find((h: { hour: number }) => h.hour === new Date("2026-01-05T09:15:00.000Z").getHours());
-    expect(hour9.count).toBe(2);
-    expect(res.body.peakHour.count).toBe(2);
+    const hour4 = res.body.byHour.find((h: { hour: number }) => h.hour === 4);
+    expect(hour4.count).toBe(2);
+    expect(res.body.peakHour).toMatchObject({ hour: 4, count: 2 });
+
+    const monday = res.body.byDayOfWeek.find((d: { day: string }) => d.day === "Monday");
+    const tuesday = res.body.byDayOfWeek.find((d: { day: string }) => d.day === "Tuesday");
+    expect(monday.count).toBe(2);
+    expect(tuesday.count).toBe(1);
   });
 
-  it("computes the day-count trend sorted ascending by date", async () => {
+  it("computes the day-count trend sorted ascending by date, in Eastern time", async () => {
     vi.mocked(prisma.report.findMany).mockResolvedValue([
-      report({ reportedAt: new Date("2026-01-06T00:00:00.000Z") }),
-      report({ reportedAt: new Date("2026-01-05T00:00:00.000Z") }),
-      report({ reportedAt: new Date("2026-01-05T12:00:00.000Z") }),
+      report({ reportedAt: new Date("2026-01-06T00:00:00.000Z") }), // Jan 5, 7pm ET
+      report({ reportedAt: new Date("2026-01-05T00:00:00.000Z") }), // Jan 4, 7pm ET
+      report({ reportedAt: new Date("2026-01-05T12:00:00.000Z") }), // Jan 5, 7am ET
     ] as never);
 
     const res = await request(buildApp()).get("/api/stats");
 
     expect(res.body.trend).toEqual([
+      { date: "2026-01-04", count: 1 },
       { date: "2026-01-05", count: 2 },
-      { date: "2026-01-06", count: 1 },
     ]);
   });
 

@@ -14,6 +14,42 @@ function streetFromAddress(address: string | null): string {
   return address.split(",")[0]?.trim() || address;
 }
 
+// Boston-only app, so "peak hour"/"peak day" should always reflect Eastern
+// time regardless of the server's own clock — cloud hosts (Render
+// included) typically run containers in UTC, which is where the previous
+// getHours()/getDay()/toISOString() based bucketing was silently drifting.
+const REPORTING_TIMEZONE = "America/New_York";
+const localTimeFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: REPORTING_TIMEZONE,
+  hourCycle: "h23",
+  hour: "numeric",
+  weekday: "long",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+const DAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+function localDateParts(date: Date): { hour: number; weekday: string; dateKey: string } {
+  const parts = Object.fromEntries(
+    localTimeFormatter.formatToParts(date).map((p) => [p.type, p.value])
+  );
+  return {
+    hour: Number(parts.hour),
+    weekday: parts.weekday,
+    dateKey: `${parts.year}-${parts.month}-${parts.day}`,
+  };
+}
+
 statsRouter.get("/", async (req, res) => {
   const parsed = statsQuerySchema.safeParse(req.query);
   if (!parsed.success) {
@@ -32,24 +68,15 @@ statsRouter.get("/", async (req, res) => {
   });
 
   const byHour = Array.from({ length: 24 }, (_, hour) => ({ hour, count: 0 }));
-  const byDayOfWeek = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ].map((day) => ({ day, count: 0 }));
+  const byDayOfWeek = DAY_NAMES.map((day) => ({ day, count: 0 }));
+  const dayIndexByName = new Map(DAY_NAMES.map((day, i) => [day, i]));
   const byDate = new Map<string, number>();
   const byStreet = new Map<string, { count: number; latitude: number; longitude: number }>();
 
   for (const report of reports) {
-    const d = report.reportedAt;
-    byHour[d.getHours()].count += 1;
-    byDayOfWeek[d.getDay()].count += 1;
-
-    const dateKey = d.toISOString().slice(0, 10);
+    const { hour, weekday, dateKey } = localDateParts(report.reportedAt);
+    byHour[hour].count += 1;
+    byDayOfWeek[dayIndexByName.get(weekday)!].count += 1;
     byDate.set(dateKey, (byDate.get(dateKey) ?? 0) + 1);
 
     const street = streetFromAddress(report.address);
