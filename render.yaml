@@ -28,7 +28,7 @@ databases:
 services:
   - type: web
     name: boston-parking-api
-    env: node
+    runtime: node
     plan: free
     rootDir: server
     buildCommand: npm install && npx prisma generate && npm run build
@@ -48,8 +48,9 @@ services:
 
   - type: web
     name: boston-parking-web
-    env: static
-    plan: free
+    runtime: static
+    # No plan field here — static sites have no compute plan/instance
+    # type at all; Render serves them free over its CDN unconditionally.
     rootDir: web
     buildCommand: npm install && npm run build
     staticPublishPath: dist
