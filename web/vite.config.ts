@@ -1,6 +1,23 @@
+import { existsSync, readFileSync } from "fs";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
+
+const currentDir = dirname(fileURLToPath(import.meta.url));
+
+// Geolocation requires a secure context on phones, so LAN testing needs
+// HTTPS. Falls back to plain HTTP if the mkcert-generated cert (see
+// README) isn't present, so a fresh clone still runs without extra setup.
+const certPath = resolve(currentDir, "../certs/lan-cert.pem");
+const keyPath = resolve(currentDir, "../certs/lan-key.pem");
+// E2E tests force plain HTTP (via VITE_DISABLE_HTTPS) so they don't depend
+// on this machine's local mkcert setup, which won't exist on a fresh clone.
+const httpsConfig =
+  !process.env.VITE_DISABLE_HTTPS && existsSync(certPath) && existsSync(keyPath)
+    ? { cert: readFileSync(certPath), key: readFileSync(keyPath) }
+    : undefined;
 
 export default defineConfig({
   plugins: [
@@ -44,5 +61,9 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    // Binds to all network interfaces (not just localhost) so phones on
+    // the same Wi-Fi network can reach the dev server directly.
+    host: true,
+    https: httpsConfig,
   },
 });
