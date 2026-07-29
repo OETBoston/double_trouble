@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import { AppHeader } from "./components/AppHeader";
+import { InstallPrompt } from "./components/InstallPrompt";
 
 // Both routes pull in mapbox-gl (and the dashboard also pulls in recharts),
 // which are large; loading them only for the route that needs them keeps the
@@ -23,6 +24,7 @@ export default function App() {
           </Routes>
         </Suspense>
       </main>
+      <InstallPrompt />
     </>
   );
 }
