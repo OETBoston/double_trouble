@@ -1,0 +1,39 @@
+name: Bug report
+description: Report something that's broken
+title: "[Bug]: "
+labels: ["type:bug", "needs-triage"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What's broken
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "e.g. iPhone 14, Safari, iOS 17 — or: Chrome 128 / macOS, or: server logs from Render"
+    validations:
+      required: false

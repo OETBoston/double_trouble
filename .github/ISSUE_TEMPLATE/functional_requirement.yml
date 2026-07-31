@@ -1,0 +1,42 @@
+name: Functional requirement
+description: Propose new user-facing behavior or a change to existing behavior
+title: "[Feature]: "
+labels: ["type:functional", "needs-triage"]
+body:
+  - type: textarea
+    id: user-story
+    attributes:
+      label: User story
+      description: "As a <role>, I want <capability>, so that <benefit>."
+      placeholder: "As a resident, I want to filter dashboard reports by neighborhood, so that I can focus on my area."
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Report flow
+        - Dashboard
+        - Backend API
+        - PWA / installability
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: Concrete, testable conditions that must hold for this to be considered done. These should map directly to the test cases added in the implementing PR.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots, related issues, constraints, out-of-scope notes, etc.
+    validations:
+      required: false
