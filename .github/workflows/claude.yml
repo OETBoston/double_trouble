@@ -1,0 +1,101 @@
+# Claude Code GitHub Action, configured for AWS Bedrock + a custom GitHub
+# App (required for Bedrock — the pre-built https://github.com/apps/claude
+# app and its /install-github-app quickstart only support direct Anthropic
+# API auth). See https://github.com/anthropics/claude-code-action for docs.
+#
+# Uses plain AWS access-key/secret-key auth (matching how this Bedrock
+# access is already configured locally) rather than OIDC/IAM-role
+# federation — simpler, though a dedicated least-privilege IAM user is
+# worth creating for this rather than reusing personal daily-use keys,
+# since these get pasted into GitHub as long-lived secrets.
+#
+# Before this will work, you need to have done ALL of the following —
+# none of it can be done from a config file, it's AWS console / GitHub
+# Settings UI work:
+#
+# AWS:
+#   1. Have (or create) an IAM user/access key with bedrock:InvokeModel
+#      and bedrock:InvokeModelWithResponseStream permission for the
+#      Claude model you pick below.
+#   2. In the Bedrock console, confirm model access is granted for that
+#      model, in the region set below (and every region its cross-region
+#      inference profile spans, if it uses one).
+#   3. Note that access key's Access Key ID and Secret Access Key.
+#
+# GitHub:
+#   4. Create your own GitHub App (Settings -> Developer settings ->
+#      GitHub Apps -> New GitHub App, or use the quick-setup manifest at
+#      https://github.com/anthropics/claude-code-action/blob/main/docs/setup.md)
+#      with Contents, Issues, and Pull requests set to Read & write.
+#   5. Generate and download its private key (.pem).
+#   6. Install that app on this repo.
+#
+# Repo secrets (Settings -> Secrets and variables -> Actions -> Secrets):
+#   - AWS_ACCESS_KEY_ID      = the access key ID from step 3
+#   - AWS_SECRET_ACCESS_KEY  = the secret access key from step 3
+#   - APP_PRIVATE_KEY        = full contents of the .pem file (step 5)
+#
+# Repo variable (same place, but the Variables tab — not sensitive, so
+# it doesn't need to be a secret):
+#   - APP_CLIENT_ID          = your GitHub App's Client ID (step 4)
+#
+# Deliberately scoped to @claude mentions only (not every new issue) —
+# nothing runs until a human explicitly asks for it in a comment. See
+# CLAUDE.md for the ask-clarifying-questions-before-implementing rule
+# this is expected to follow.
+
+name: Claude Code
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  claude:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: read # lets Claude read CI results on PRs
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          # TODO: set to the region your Bedrock model access/inference
+          # profile actually uses.
+          aws-region: us-west-2
+
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Run Claude Code
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          use_bedrock: "true"
+          github_token: ${{ steps.app-token.outputs.token }}
+          # TODO: swap the model below for whichever Claude model you
+          # actually have Bedrock access to. Consider adding --max-turns
+          # once this is working end to end, to cap runaway cost.
+          claude_args: |
+            --model anthropic.claude-4-0-sonnet-20250805-v1:0
