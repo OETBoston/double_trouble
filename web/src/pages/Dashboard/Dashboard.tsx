@@ -10,7 +10,7 @@ import { resolveWindow, WindowPreset } from "./timeWindow";
 const LIVE_POLL_MS = 15000;
 
 export function Dashboard() {
-  const [preset, setPreset] = useState<WindowPreset>("today");
+  const [preset, setPreset] = useState<WindowPreset>("month");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
   const [live, setLive] = useState(true);
