@@ -1,0 +1,153 @@
+# Deploys server/ to Cloud Run and web/ to Firebase Hosting, authenticated
+# via Workload Identity Federation (no long-lived GCP key stored as a
+# secret). Manually triggered for now (workflow_dispatch) rather than on
+# every push to main — switch the `on:` block below to `push: branches:
+# [main]` once you trust this pipeline for continuous deployment.
+#
+# None of the following can be done from this file — it's GCP console /
+# gcloud CLI work, once, before this workflow can run successfully:
+#
+# 1. Create a GCP project (or use an existing one) and enable billing.
+#
+# 2. Enable required APIs:
+#      gcloud services enable run.googleapis.com sqladmin.googleapis.com \
+#        artifactregistry.googleapis.com secretmanager.googleapis.com \
+#        iamcredentials.googleapis.com firebasehosting.googleapis.com
+#
+# 3. Create a Cloud SQL for PostgreSQL instance, a database, and a user.
+#    Note its connection name (PROJECT:REGION:INSTANCE).
+#
+# 4. Store the resulting connection string in Secret Manager, e.g.:
+#      echo -n "postgresql://USER:PASSWORD@localhost/DBNAME?host=/cloudsql/PROJECT:REGION:INSTANCE" \
+#        | gcloud secrets create boston-parking-database-url --data-file=-
+#
+# 5. Create an Artifact Registry repo for the API image:
+#      gcloud artifacts repositories create boston-parking \
+#        --repository-format=docker --location=REGION
+#
+# 6. Set up Workload Identity Federation for GitHub Actions (one-time):
+#    https://github.com/google-github-actions/auth#setting-up-workload-identity-federation
+#    This creates a Workload Identity Pool + Provider trusting GitHub's
+#    OIDC issuer, and a dedicated service account granted (at minimum):
+#      roles/run.admin, roles/artifactregistry.writer,
+#      roles/iam.serviceAccountUser, roles/secretmanager.secretAccessor,
+#      roles/firebasehosting.admin
+#    Note the provider's full resource name and the service account's
+#    email — these become the two repo secrets below.
+#
+# 7. Create a Cloud Run Job that runs migrations against the same image,
+#    once the first image exists in Artifact Registry:
+#      gcloud run jobs create boston-parking-migrate \
+#        --image=REGION-docker.pkg.dev/PROJECT/boston-parking/api:latest \
+#        --region=REGION \
+#        --set-cloudsql-instances=PROJECT:REGION:INSTANCE \
+#        --set-secrets=DATABASE_URL=boston-parking-database-url:latest \
+#        --command=npx --args=prisma,migrate,deploy
+#
+# 8. Run `firebase init hosting` in web/ once (or just fill in
+#    web/.firebaserc's project ID directly) to connect it to a Firebase
+#    Hosting site under the same GCP project.
+#
+# Repo secrets (Settings -> Secrets and variables -> Actions -> Secrets):
+#   - GCP_WORKLOAD_IDENTITY_PROVIDER = provider resource name from step 6
+#   - GCP_SERVICE_ACCOUNT            = deploy service account email from step 6
+#   - VITE_MAPBOX_TOKEN              = the frontend's Mapbox public token
+#
+# Repo variables (same place, Variables tab):
+#   - GCP_PROJECT_ID, GCP_REGION, GCP_ARTIFACT_REPO, GCP_SQL_CONNECTION_NAME,
+#     GCP_CLOUD_RUN_SERVICE, GCP_MIGRATE_JOB, PRODUCTION_API_URL,
+#     PRODUCTION_FRONTEND_URL, GCP_DB_SECRET_NAME
+
+name: Deploy to GCP
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  deploy-api:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for Workload Identity Federation
+    outputs:
+      image: ${{ steps.build.outputs.image }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev
+
+      - name: Build and push image
+        id: build
+        working-directory: server
+        run: |
+          IMAGE="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api:${{ github.sha }}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Run database migrations
+        run: |
+          gcloud run jobs update ${{ vars.GCP_MIGRATE_JOB }} \
+            --region "${{ vars.GCP_REGION }}" \
+            --image "${{ steps.build.outputs.image }}"
+          gcloud run jobs execute ${{ vars.GCP_MIGRATE_JOB }} \
+            --region "${{ vars.GCP_REGION }}" \
+            --wait
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ vars.GCP_CLOUD_RUN_SERVICE }}
+          region: ${{ vars.GCP_REGION }}
+          image: ${{ steps.build.outputs.image }}
+          flags: --add-cloudsql-instances=${{ vars.GCP_SQL_CONNECTION_NAME }}
+          secrets: |
+            DATABASE_URL=${{ vars.GCP_DB_SECRET_NAME }}:latest
+          env_vars: |
+            CORS_ORIGIN=${{ vars.PRODUCTION_FRONTEND_URL }}
+
+  deploy-web:
+    runs-on: ubuntu-latest
+    needs: deploy-api
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ vars.PRODUCTION_API_URL }}
+          VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Deploy to Firebase Hosting
+        run: |
+          npm install -g firebase-tools
+          firebase deploy --only hosting --project ${{ vars.GCP_PROJECT_ID }} --non-interactive
