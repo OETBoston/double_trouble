@@ -1,25 +1,22 @@
 .header {
   background: var(--boston-navy-800);
   color: white;
-  padding: var(--space-3) var(--space-5);
   /* Keeps the brand row clear of the iPhone notch/dynamic island when
      installed as a standalone app (requires viewport-fit=cover, already
      set in index.html). */
   padding-top: max(var(--space-3), env(safe-area-inset-top));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  flex-wrap: wrap;
 }
 
 .brandRow {
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
+  padding: 0 var(--space-5) var(--space-3);
+  flex-wrap: wrap;
 }
 
 .cityTag {
+  font-family: var(--font-heading);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -27,21 +24,25 @@
 }
 
 .title {
+  font-family: var(--font-heading);
   font-size: 1.15rem;
   font-weight: 700;
 }
 
+/* Two equal-width buttons spanning the full header width, like a tab bar,
+   rather than compact pills tucked next to the brand row. */
 .nav {
   display: flex;
-  gap: var(--space-2);
+  width: 100%;
 }
 
 .navLink,
 .navLinkActive {
+  flex: 1;
+  text-align: center;
   color: white;
   text-decoration: none;
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
   font-weight: 600;
 }
 
@@ -54,6 +55,7 @@
 .navLink:focus-visible,
 .navLinkActive:focus-visible {
   outline-color: var(--boston-gold-500);
+  outline-offset: -3px;
 }
 
 .navLinkActive {

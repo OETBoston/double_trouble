@@ -23,9 +23,12 @@
 }
 
 .startButton {
-  background: var(--boston-navy-800);
+  background: var(--boston-blue-optimistic);
   color: white;
-  font-size: 1.1rem;
+  /* White-on-#288BE4 clears WCAG AA's 3:1 minimum for large-scale text
+     (≥18.66px bold) but not the 4.5:1 minimum for normal text — kept at
+     1.2rem/700 rather than smaller, to stay compliant at this color. */
+  font-size: 1.2rem;
   font-weight: 700;
   padding: var(--space-4) var(--space-6);
   border: none;
@@ -35,7 +38,7 @@
 }
 
 .startButton:hover {
-  background: var(--boston-navy-700);
+  background: var(--boston-blue-optimistic-hover);
 }
 
 .anonymousNote {

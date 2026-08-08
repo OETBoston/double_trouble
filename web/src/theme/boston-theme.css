@@ -9,6 +9,8 @@
   --boston-gold-700: #a86e00;
   --boston-red-600: #c8102e;
   --boston-green-700: #157a4a;
+  --boston-blue-optimistic: #288be4;
+  --boston-blue-optimistic-hover: #1d6fb8;
 
   --color-bg: #f6f7f9;
   --color-surface: #ffffff;
@@ -29,8 +31,8 @@
   --space-6: 32px;
   --space-7: 48px;
 
-  --font-sans:
-    "Helvetica Neue", Arial, "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-heading: "Montserrat", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Lora", Georgia, "Times New Roman", serif;
 
   color-scheme: light;
 }
@@ -54,13 +56,22 @@ html {
 
 body {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   background: var(--color-bg);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   /* Removes the gray tap flash Android/iOS browsers show on click, which
      reads as "web page" rather than "app". */
   -webkit-tap-highlight-color: transparent;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
 }
 
 button,

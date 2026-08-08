@@ -16,7 +16,7 @@ export function AppHeader() {
           className={({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}
           end
         >
-          Report
+          Make a Report
         </NavLink>
         <NavLink
           to="/dashboard"
