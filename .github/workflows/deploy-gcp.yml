@@ -138,11 +138,14 @@
 #
 # Repo variables (same place, Variables tab):
 #   - GCP_PROJECT_ID, GCP_REGION, GCP_ARTIFACT_REPO, GCP_SQL_CONNECTION_NAME,
-#     GCP_CLOUD_RUN_SERVICE, GCP_MIGRATE_JOB, PRODUCTION_API_URL,
-#     PRODUCTION_FRONTEND_URL, GCP_DB_SECRET_NAME, GCP_VPC_NETWORK
+#     GCP_CLOUD_RUN_SERVICE, GCP_MIGRATE_JOB, PRODUCTION_FRONTEND_URL,
+#     GCP_DB_SECRET_NAME, GCP_VPC_NETWORK
 #     (full path: projects/HOST_PROJECT_ID/global/networks/NETWORK_NAME),
 #     GCP_VPC_SUBNET (full path:
 #     projects/HOST_PROJECT_ID/regions/REGION/subnetworks/SUBNET_NAME)
+#   (PRODUCTION_API_URL is deliberately not a variable -- it's read live
+#   from the deploy-api job's output instead, since Cloud Run's default
+#   URL includes an unpredictable hash and can't be known ahead of time.)
 
 name: Deploy to GCP
 
@@ -157,6 +160,7 @@ jobs:
       id-token: write # required for Workload Identity Federation
     outputs:
       image: ${{ steps.build.outputs.image }}
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - uses: actions/checkout@v6
 
@@ -190,6 +194,7 @@ jobs:
             --wait
 
       - name: Deploy to Cloud Run
+        id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ vars.GCP_CLOUD_RUN_SERVICE }}
@@ -234,7 +239,12 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_API_URL: ${{ vars.PRODUCTION_API_URL }}
+          # The Cloud Run default URL includes an unpredictable hash
+          # component, so it can't be known ahead of time as a static
+          # variable the way PRODUCTION_FRONTEND_URL (a stable Firebase
+          # Hosting URL) can -- read it live from the deploy-api job
+          # instead of pre-setting it.
+          VITE_API_URL: ${{ needs.deploy-api.outputs.url }}
           VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
 
       - id: auth
