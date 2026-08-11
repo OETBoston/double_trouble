@@ -4,6 +4,27 @@
 # every push to main — switch the `on:` block below to `push: branches:
 # [main]` once you trust this pipeline for continuous deployment.
 #
+# Architecture notes specific to this GCP org, which shaped several
+# choices below and aren't the default path most GCP tutorials assume:
+#   - constraints/sql.restrictPublicIp is enforced org-wide, so the Cloud
+#     SQL instance CANNOT have a public IP at all. It's private-IP-only.
+#   - The org uses Shared VPC — the actual VPC network/subnets live in a
+#     separate host project, administered by someone else. Anything that
+#     touches that network (creating the private-services-access peering,
+#     granting roles/compute.networkUser) has to go through that admin;
+#     it isn't self-servable from this project.
+#   - Because of both of the above, Cloud Run (and the migration Job)
+#     need Direct VPC egress configured to reach the database at all —
+#     not just the Cloud SQL connector on its own.
+#
+# Status as of the instance being created (console, not gcloud, since the
+# gcloud custom-tier flags kept colliding with org constraints):
+#   [x] Cloud SQL instance: private IP, Shared VPC, PostgreSQL 18,
+#       Enterprise edition (not Enterprise Plus — that edition forces
+#       predefined db-perf-optimized-* tiers instead of a custom
+#       cpu/memory config), 1 vCPU / 4GB, region us-east4.
+#   [ ] Everything below this point.
+#
 # None of the following can be done from this file — it's GCP console /
 # gcloud CLI work, once, before this workflow can run successfully:
 #
@@ -12,12 +33,14 @@
 # 2. Enable required APIs:
 #      gcloud services enable run.googleapis.com sqladmin.googleapis.com \
 #        artifactregistry.googleapis.com secretmanager.googleapis.com \
-#        iamcredentials.googleapis.com firebasehosting.googleapis.com
+#        iamcredentials.googleapis.com firebasehosting.googleapis.com \
+#        servicenetworking.googleapis.com compute.googleapis.com
 #
-# 3. Create a Cloud SQL for PostgreSQL instance, a database, and a user
-#    (done: private IP only, on the org's Shared VPC — no public IP, per
-#    the org policy constraints/sql.restrictPublicIp). Note its connection
-#    name (PROJECT:REGION:INSTANCE) from the instance's Overview page.
+# 3. On the instance's Databases and Users tabs (console), create the
+#    `boston_parking` database and a `boston_parking_app` user with its
+#    own password (don't reuse the postgres root user for the app). Then
+#    note the instance's connection name (PROJECT:REGION:INSTANCE) from
+#    its Overview page.
 #
 # 4. Store the resulting connection string in Secret Manager, e.g.:
 #      echo -n "postgresql://USER:PASSWORD@localhost/DBNAME?host=/cloudsql/PROJECT:REGION:INSTANCE" \
