@@ -53,15 +53,57 @@
 #      gcloud artifacts repositories create boston-parking \
 #        --repository-format=docker --location=REGION
 #
-# 6. Set up Workload Identity Federation for GitHub Actions (one-time):
-#    https://github.com/google-github-actions/auth#setting-up-workload-identity-federation
-#    This creates a Workload Identity Pool + Provider trusting GitHub's
-#    OIDC issuer, and a dedicated service account granted (at minimum):
-#      roles/run.admin, roles/artifactregistry.writer,
-#      roles/iam.serviceAccountUser, roles/secretmanager.secretAccessor,
-#      roles/firebasehosting.admin
-#    Note the provider's full resource name and the service account's
-#    email — these become the two repo secrets below.
+# 6. Set up Workload Identity Federation for GitHub Actions (one-time).
+#    Using "through a Service Account" (not the newer "Direct" pattern
+#    google-github-actions/auth now prefers) since not every resource
+#    here supports principalSet identities directly. Exact commands from
+#    https://github.com/google-github-actions/auth#indirect-wif :
+#
+#      # TODO: replace PROJECT_ID with your value.
+#      gcloud iam service-accounts create boston-parking-deployer \
+#        --project=PROJECT_ID
+#
+#      gcloud iam workload-identity-pools create github \
+#        --project=PROJECT_ID --location=global \
+#        --display-name="GitHub Actions Pool"
+#
+#      gcloud iam workload-identity-pools providers create-oidc double-trouble \
+#        --project=PROJECT_ID --location=global \
+#        --workload-identity-pool=github \
+#        --display-name="OETBoston/double_trouble Provider" \
+#        --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner" \
+#        --attribute-condition="assertion.repository_owner == 'OETBoston'" \
+#        --issuer-uri="https://token.actions.githubusercontent.com"
+#
+#      # Get the pool's full ID first (needed for the next command):
+#      gcloud iam workload-identity-pools describe github \
+#        --project=PROJECT_ID --location=global --format="value(name)"
+#      # -> projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github
+#
+#      # Scoped to this exact repo, not just the org, as defense in depth
+#      # on top of the provider's org-level attribute-condition above:
+#      gcloud iam service-accounts add-iam-policy-binding \
+#        boston-parking-deployer@PROJECT_ID.iam.gserviceaccount.com \
+#        --project=PROJECT_ID \
+#        --role=roles/iam.workloadIdentityUser \
+#        --member="principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github/attribute.repository/OETBoston/double_trouble"
+#
+#      # Grant the deploy service account the actual GCP permissions it needs:
+#      for role in roles/run.admin roles/artifactregistry.writer \
+#                  roles/iam.serviceAccountUser roles/secretmanager.secretAccessor \
+#                  roles/firebasehosting.admin; do
+#        gcloud projects add-iam-policy-binding PROJECT_ID \
+#          --member="serviceAccount:boston-parking-deployer@PROJECT_ID.iam.gserviceaccount.com" \
+#          --role="$role"
+#      done
+#
+#      # Get the provider's full resource name for the GCP_WORKLOAD_IDENTITY_PROVIDER
+#      # secret below:
+#      gcloud iam workload-identity-pools providers describe double-trouble \
+#        --project=PROJECT_ID --location=global --workload-identity-pool=github \
+#        --format="value(name)"
+#
+#    GCP_SERVICE_ACCOUNT = boston-parking-deployer@PROJECT_ID.iam.gserviceaccount.com
 #
 # 6a. Because the Cloud SQL instance is private-IP-only on a Shared VPC,
 #     both Cloud Run (via Direct VPC egress) and the migration Job below
@@ -119,7 +161,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - id: auth
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
@@ -196,7 +238,7 @@ jobs:
           VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
 
       - id: auth
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
