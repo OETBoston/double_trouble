@@ -14,8 +14,10 @@
 #        artifactregistry.googleapis.com secretmanager.googleapis.com \
 #        iamcredentials.googleapis.com firebasehosting.googleapis.com
 #
-# 3. Create a Cloud SQL for PostgreSQL instance, a database, and a user.
-#    Note its connection name (PROJECT:REGION:INSTANCE).
+# 3. Create a Cloud SQL for PostgreSQL instance, a database, and a user
+#    (done: private IP only, on the org's Shared VPC — no public IP, per
+#    the org policy constraints/sql.restrictPublicIp). Note its connection
+#    name (PROJECT:REGION:INSTANCE) from the instance's Overview page.
 #
 # 4. Store the resulting connection string in Secret Manager, e.g.:
 #      echo -n "postgresql://USER:PASSWORD@localhost/DBNAME?host=/cloudsql/PROJECT:REGION:INSTANCE" \
@@ -35,11 +37,24 @@
 #    Note the provider's full resource name and the service account's
 #    email — these become the two repo secrets below.
 #
+# 6a. Because the Cloud SQL instance is private-IP-only on a Shared VPC,
+#     both Cloud Run (via Direct VPC egress) and the migration Job below
+#     need to reach it over that network — which means the deploy service
+#     account from step 6 (and, at runtime, the Cloud Run service's own
+#     identity) needs roles/compute.networkUser granted BY THE VPC's HOST
+#     PROJECT ADMIN on the specific subnet in this region. This can't be
+#     self-served from this project; ask the host project's admin.
+#
 # 7. Create a Cloud Run Job that runs migrations against the same image,
-#    once the first image exists in Artifact Registry:
+#    once the first image exists in Artifact Registry. Include the same
+#    Direct VPC egress flags as the Cloud Run service below, since the
+#    job also needs to reach the private-IP database:
 #      gcloud run jobs create boston-parking-migrate \
 #        --image=REGION-docker.pkg.dev/PROJECT/boston-parking/api:latest \
 #        --region=REGION \
+#        --network=projects/HOST_PROJECT_ID/global/networks/NETWORK_NAME \
+#        --subnet=projects/HOST_PROJECT_ID/regions/REGION/subnetworks/SUBNET_NAME \
+#        --vpc-egress=private-ranges-only \
 #        --set-cloudsql-instances=PROJECT:REGION:INSTANCE \
 #        --set-secrets=DATABASE_URL=boston-parking-database-url:latest \
 #        --command=npx --args=prisma,migrate,deploy
@@ -56,7 +71,10 @@
 # Repo variables (same place, Variables tab):
 #   - GCP_PROJECT_ID, GCP_REGION, GCP_ARTIFACT_REPO, GCP_SQL_CONNECTION_NAME,
 #     GCP_CLOUD_RUN_SERVICE, GCP_MIGRATE_JOB, PRODUCTION_API_URL,
-#     PRODUCTION_FRONTEND_URL, GCP_DB_SECRET_NAME
+#     PRODUCTION_FRONTEND_URL, GCP_DB_SECRET_NAME, GCP_VPC_NETWORK
+#     (full path: projects/HOST_PROJECT_ID/global/networks/NETWORK_NAME),
+#     GCP_VPC_SUBNET (full path:
+#     projects/HOST_PROJECT_ID/regions/REGION/subnetworks/SUBNET_NAME)
 
 name: Deploy to GCP
 
@@ -109,7 +127,17 @@ jobs:
           service: ${{ vars.GCP_CLOUD_RUN_SERVICE }}
           region: ${{ vars.GCP_REGION }}
           image: ${{ steps.build.outputs.image }}
-          flags: --add-cloudsql-instances=${{ vars.GCP_SQL_CONNECTION_NAME }}
+          # --add-cloudsql-instances alone isn't enough once the instance
+          # is private-IP-only: Cloud Run also needs Direct VPC egress to
+          # actually route to that private IP over the Shared VPC. Both
+          # together is Google's recommended pairing for private IP (the
+          # connector still handles the encrypted/IAM-authenticated
+          # connection; VPC egress just makes the network path exist).
+          flags: >-
+            --add-cloudsql-instances=${{ vars.GCP_SQL_CONNECTION_NAME }}
+            --network=${{ vars.GCP_VPC_NETWORK }}
+            --subnet=${{ vars.GCP_VPC_SUBNET }}
+            --vpc-egress=private-ranges-only
           secrets: |
             DATABASE_URL=${{ vars.GCP_DB_SECRET_NAME }}:latest
           env_vars: |
