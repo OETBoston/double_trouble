@@ -22,8 +22,11 @@
 #   [x] Cloud SQL instance: private IP, Shared VPC, PostgreSQL 18,
 #       Enterprise edition (not Enterprise Plus — that edition forces
 #       predefined db-perf-optimized-* tiers instead of a custom
-#       cpu/memory config), 1 vCPU / 4GB, region us-east4.
-#   [ ] Everything below this point.
+#       cpu/memory config), 1 vCPU / 4GB, region us-east1.
+#   [x] Artifact Registry repo (boston-parking, docker format, us-east1 —
+#       matches the Cloud SQL instance's region; Cloud Run and the
+#       migration Job below should both target this same region too).
+#   [ ] Everything else below this point.
 #
 # None of the following can be done from this file — it's GCP console /
 # gcloud CLI work, once, before this workflow can run successfully:
