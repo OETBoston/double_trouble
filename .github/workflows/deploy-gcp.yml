@@ -113,16 +113,18 @@
 #     PROJECT ADMIN on the specific subnet in this region. This can't be
 #     self-served from this project; ask the host project's admin.
 #
-# 7. Create a Cloud Run Job that runs migrations against the same image,
-#    once the first image exists in Artifact Registry. Include the same
-#    Direct VPC egress flags as the Cloud Run service below, since the
-#    job also needs to reach the private-IP database:
+# 7. Create a Cloud Run Job that runs migrations, once the first image
+#    exists in Artifact Registry (see the manual bootstrap push below).
+#    Deliberately omits the Direct VPC egress flags here -- the
+#    workflow's "Run database migrations" step sets those on every run
+#    via `jobs update`, authenticated as the deploy service account
+#    (which has compute.networkUser on the subnet). That way this
+#    one-time manual command only needs Artifact Registry + Cloud Run
+#    permissions on your own project, not a Shared VPC grant on your
+#    personal account too:
 #      gcloud run jobs create boston-parking-migrate \
-#        --image=REGION-docker.pkg.dev/PROJECT/boston-parking/api:latest \
+#        --image=REGION-docker.pkg.dev/PROJECT/boston-parking/api:bootstrap \
 #        --region=REGION \
-#        --network=projects/HOST_PROJECT_ID/global/networks/NETWORK_NAME \
-#        --subnet=projects/HOST_PROJECT_ID/regions/REGION/subnetworks/SUBNET_NAME \
-#        --vpc-egress=private-ranges-only \
 #        --set-cloudsql-instances=PROJECT:REGION:INSTANCE \
 #        --set-secrets=DATABASE_URL=boston-parking-database-url:latest \
 #        --command=npx --args=prisma,migrate,deploy
@@ -186,9 +188,17 @@ jobs:
 
       - name: Run database migrations
         run: |
+          # VPC egress is set here, not at the job's one-time manual
+          # creation, so only the deploy service account (authenticated
+          # above via WIF) ever needs compute.networkUser on the subnet
+          # -- not whoever's personal account runs the one-time create
+          # command in step 7 below.
           gcloud run jobs update ${{ vars.GCP_MIGRATE_JOB }} \
             --region "${{ vars.GCP_REGION }}" \
-            --image "${{ steps.build.outputs.image }}"
+            --image "${{ steps.build.outputs.image }}" \
+            --network "${{ vars.GCP_VPC_NETWORK }}" \
+            --subnet "${{ vars.GCP_VPC_SUBNET }}" \
+            --vpc-egress private-ranges-only
           gcloud run jobs execute ${{ vars.GCP_MIGRATE_JOB }} \
             --region "${{ vars.GCP_REGION }}" \
             --wait
