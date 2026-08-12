@@ -108,10 +108,28 @@
 # 6a. Because the Cloud SQL instance is private-IP-only on a Shared VPC,
 #     both Cloud Run (via Direct VPC egress) and the migration Job below
 #     need to reach it over that network — which means the deploy service
-#     account from step 6 (and, at runtime, the Cloud Run service's own
-#     identity) needs roles/compute.networkUser granted BY THE VPC's HOST
-#     PROJECT ADMIN on the specific subnet in this region. This can't be
+#     account from step 6 needs roles/compute.networkUser granted BY THE
+#     VPC's HOST PROJECT ADMIN on the specific subnet in this region
+#     (this gates *attaching* a resource to the subnet at deploy/config
+#     time; the resource's own runtime identity below doesn't separately
+#     need it to actually send traffic once attached). This can't be
 #     self-served from this project; ask the host project's admin.
+#
+# 6b. Create a dedicated RUNTIME service account for the Cloud Run
+#     service and migration Job themselves (distinct from the deploy
+#     service account above, which only deploys/configures them). This
+#     is what actually reads the DATABASE_URL secret and uses the Cloud
+#     SQL connector at runtime -- defaulting to the generic Compute
+#     Engine default service account instead works too, but pooling
+#     database credential access onto a shared, project-wide default
+#     identity is worth avoiding:
+#      gcloud iam service-accounts create boston-parking-runtime \
+#        --project=PROJECT_ID
+#      for role in roles/secretmanager.secretAccessor roles/cloudsql.client; do
+#        gcloud projects add-iam-policy-binding PROJECT_ID \
+#          --member="serviceAccount:boston-parking-runtime@PROJECT_ID.iam.gserviceaccount.com" \
+#          --role="$role"
+#      done
 #
 # 7. Create a Cloud Run Job that runs migrations, once the first image
 #    exists in Artifact Registry (see the manual bootstrap push below).
@@ -141,7 +159,11 @@
 # Repo variables (same place, Variables tab):
 #   - GCP_PROJECT_ID, GCP_REGION, GCP_ARTIFACT_REPO, GCP_SQL_CONNECTION_NAME,
 #     GCP_CLOUD_RUN_SERVICE, GCP_MIGRATE_JOB, PRODUCTION_FRONTEND_URL,
-#     GCP_DB_SECRET_NAME, GCP_VPC_NETWORK
+#     GCP_DB_SECRET_NAME,
+#     GCP_RUNTIME_SERVICE_ACCOUNT (= boston-parking-runtime@PROJECT_ID.iam.gserviceaccount.com,
+#     from step 6b -- this is the Cloud Run service/Job's own runtime
+#     identity, distinct from GCP_SERVICE_ACCOUNT which only deploys them),
+#     GCP_VPC_NETWORK
 #     (full path: projects/HOST_PROJECT_ID/global/networks/NETWORK_NAME),
 #     GCP_VPC_SUBNET (full path:
 #     projects/HOST_PROJECT_ID/regions/REGION/subnetworks/SUBNET_NAME)
@@ -198,7 +220,8 @@ jobs:
             --image "${{ steps.build.outputs.image }}" \
             --network "${{ vars.GCP_VPC_NETWORK }}" \
             --subnet "${{ vars.GCP_VPC_SUBNET }}" \
-            --vpc-egress private-ranges-only
+            --vpc-egress private-ranges-only \
+            --service-account "${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}"
           gcloud run jobs execute ${{ vars.GCP_MIGRATE_JOB }} \
             --region "${{ vars.GCP_REGION }}" \
             --wait
@@ -221,6 +244,7 @@ jobs:
             --network=${{ vars.GCP_VPC_NETWORK }}
             --subnet=${{ vars.GCP_VPC_SUBNET }}
             --vpc-egress=private-ranges-only
+            --service-account=${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
           secrets: |
             DATABASE_URL=${{ vars.GCP_DB_SECRET_NAME }}:latest
           env_vars: |
