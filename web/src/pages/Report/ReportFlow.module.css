@@ -93,6 +93,34 @@
   padding: var(--space-2);
 }
 
+/* Keeps the pin step's confirm action reachable without scrolling back
+   down past the map — pinned to the viewport bottom instead of sitting
+   inline after the map/instructions. */
+.floatingActions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Above InstallPrompt's banner (z-index: 100) so this step's essential
+     confirm action always wins if both happen to be showing at once. */
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-4) var(--space-4)
+    max(var(--space-4), calc(var(--space-3) + env(safe-area-inset-bottom)));
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -4px 12px rgba(7, 20, 38, 0.1);
+}
+
+/* Reserves room for the fixed bar above so it doesn't cover the last of
+   the page's own content when scrolled to the bottom. */
+.floatingActionsSpacer {
+  height: 96px;
+}
+
 .methodGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

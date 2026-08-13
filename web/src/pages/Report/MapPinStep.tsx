@@ -120,12 +120,18 @@ export function MapPinStep({
         />
         <div className={styles.crosshair} aria-hidden="true" />
       </div>
-      <p role="status" aria-live="polite">
-        {selected
-          ? `Pin placed at ${selected.lat.toFixed(5)}, ${selected.lng.toFixed(5)}.`
-          : "No pin placed yet."}
+      {/* Screen readers still need to know a pin landed — sighted users get
+          that from the marker appearing on the map itself, so this stays
+          visually hidden rather than shown as on-screen text. Deliberately
+          doesn't read out raw coordinates, which aren't meaningful to
+          someone listening rather than looking at a map. */}
+      <p role="status" aria-live="polite" className="visually-hidden">
+        {selected ? "Pin placed." : ""}
       </p>
-      <div className={styles.stepActions}>
+      {/* Reserves the space the floating bar below covers, so the last of
+          the map/instructions isn't hidden behind it when scrolled down. */}
+      <div className={styles.floatingActionsSpacer} aria-hidden="true" />
+      <div className={styles.floatingActions}>
         <button className={styles.primaryAction} disabled={!selected || resolving} onClick={confirmLocation}>
           {resolving ? "Looking up address…" : "Use this location"}
         </button>

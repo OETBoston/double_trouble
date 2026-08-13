@@ -69,10 +69,10 @@ describe("MapPinStep", () => {
   it('disables "Use this location" until a pin is placed', () => {
     render(<MapPinStep onResolved={vi.fn()} onBack={vi.fn()} />);
     expect(screen.getByRole("button", { name: /use this location/i })).toBeDisabled();
-    expect(screen.getByText(/no pin placed yet/i)).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("");
   });
 
-  it("drops a pin at the map center on Enter and reports its coordinates", async () => {
+  it("drops a pin at the map center on Enter and enables the confirm button", async () => {
     const user = userEvent.setup();
     render(<MapPinStep onResolved={vi.fn()} onBack={vi.fn()} />);
 
@@ -80,13 +80,14 @@ describe("MapPinStep", () => {
     map.focus();
     await user.keyboard("{Enter}");
 
-    expect(screen.getByText(/pin placed at 42\.36010, -71\.05890/i)).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/pin placed/i);
     expect(screen.getByRole("button", { name: /use this location/i })).toBeEnabled();
   });
 
   it("pans the map center with arrow keys before dropping a pin", async () => {
+    const onResolved = vi.fn();
     const user = userEvent.setup();
-    render(<MapPinStep onResolved={vi.fn()} onBack={vi.fn()} />);
+    render(<MapPinStep onResolved={onResolved} onBack={vi.fn()} />);
 
     const map = screen.getByRole("application");
     map.focus();
@@ -94,10 +95,19 @@ describe("MapPinStep", () => {
 
     // Two ArrowRight presses shift the center; the exact figure just needs
     // to differ from the untouched Boston center to prove panBy ran.
-    expect(screen.getByText(/pin placed at/i)).toHaveTextContent(
-      `${mapState.center.lat.toFixed(5)}, ${mapState.center.lng.toFixed(5)}`
-    );
     expect(mapState.center.lng).not.toBe(-71.0589);
+
+    await user.click(screen.getByRole("button", { name: /use this location/i }));
+
+    // Confirming resolves against the panned center, not the original one,
+    // proving placeMarker picked up the live map center rather than a stale
+    // value.
+    expect(onResolved).toHaveBeenCalledWith(
+      expect.objectContaining({
+        latitude: mapState.center.lat,
+        longitude: mapState.center.lng,
+      })
+    );
   });
 
   it("resolves the location with a reverse-geocoded address on confirm", async () => {
