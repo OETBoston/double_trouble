@@ -22,25 +22,6 @@
   margin-bottom: var(--space-5);
 }
 
-.startButton {
-  background: var(--boston-blue-optimistic);
-  color: white;
-  /* White-on-#288BE4 clears WCAG AA's 3:1 minimum for large-scale text
-     (≥18.66px bold) but not the 4.5:1 minimum for normal text — kept at
-     1.2rem/700 rather than smaller, to stay compliant at this color. */
-  font-size: 1.2rem;
-  font-weight: 700;
-  padding: var(--space-4) var(--space-6);
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  min-height: 52px;
-}
-
-.startButton:hover {
-  background: var(--boston-blue-optimistic-hover);
-}
-
 .anonymousNote {
   margin-top: var(--space-4);
   font-size: 0.9rem;
