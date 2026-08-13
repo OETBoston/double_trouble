@@ -15,7 +15,7 @@ export interface LocationResult {
   method: LocationMethod;
 }
 
-type Step = "landing" | "method" | "gps" | "pin" | "search" | "confirm" | "success";
+type Step = "landing" | "gps" | "pin" | "search" | "confirm" | "success";
 
 export function ReportFlow() {
   const [step, setStep] = useState<Step>("landing");
@@ -66,33 +66,31 @@ export function ReportFlow() {
   return (
     <div className={styles.page}>
       {step === "landing" && (
-        <section className={styles.hero} aria-labelledby="report-heading">
-          <h1 id="report-heading">Report a Double-Parked Vehicle</h1>
-          <p className={styles.lead}>
-            See a vehicle illegally double-parked in Boston? Report it in under a minute — no
-            account, no personal information required.
-          </p>
-          <button className={styles.startButton} onClick={() => setStep("method")}>
-            Start a Report
-          </button>
-          <p className={styles.anonymousNote}>
-            Reports are submitted anonymously. We only record the location and time you provide.
-          </p>
-        </section>
+        <>
+          <section className={styles.hero} aria-labelledby="report-heading">
+            <h1 id="report-heading">Report a Double-Parked Vehicle</h1>
+            <p className={styles.lead}>
+              See a vehicle illegally double-parked in Boston? Report it in under a minute — no
+              account, no personal information required.
+            </p>
+            <p className={styles.anonymousNote}>
+              Reports are submitted anonymously. We only record the location and time you provide.
+            </p>
+          </section>
+          <LocationMethodPicker onChoose={handleMethodChosen} />
+        </>
       )}
 
-      {step === "method" && <LocationMethodPicker onChoose={handleMethodChosen} />}
-
       {step === "gps" && (
-        <GpsStep onResolved={handleLocationResolved} onBack={() => setStep("method")} />
+        <GpsStep onResolved={handleLocationResolved} onBack={() => setStep("landing")} />
       )}
 
       {step === "pin" && (
-        <MapPinStep onResolved={handleLocationResolved} onBack={() => setStep("method")} />
+        <MapPinStep onResolved={handleLocationResolved} onBack={() => setStep("landing")} />
       )}
 
       {step === "search" && (
-        <AddressSearchStep onResolved={handleLocationResolved} onBack={() => setStep("method")} />
+        <AddressSearchStep onResolved={handleLocationResolved} onBack={() => setStep("landing")} />
       )}
 
       {step === "confirm" && location && (
@@ -101,7 +99,7 @@ export function ReportFlow() {
           submitting={submitting}
           error={submitError}
           onConfirm={handleSubmit}
-          onBack={() => setStep("method")}
+          onBack={() => setStep("landing")}
         />
       )}
 

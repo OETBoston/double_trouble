@@ -34,7 +34,6 @@ test("submits a report via address search and shows the success screen", async (
   });
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Start a Report" }).click();
   await page.getByRole("button", { name: /search for an address/i }).click();
 
   await page.getByRole("combobox").fill("1 City Hall");
@@ -53,7 +52,7 @@ test("submits a report via address search and shows the success screen", async (
   });
 
   await page.getByRole("button", { name: "Report another car" }).click();
-  await expect(page.getByRole("heading", { name: "Report a Double-Parked Car" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Report a Double-Parked Vehicle" })).toBeVisible();
 });
 
 test("shows an error and stays on the confirm step if submission fails", async ({ page }) => {
@@ -69,7 +68,6 @@ test("shows an error and stays on the confirm step if submission fails", async (
   await page.route("**/api/reports", (route) => route.fulfill({ status: 500, json: {} }));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Start a Report" }).click();
   await page.getByRole("button", { name: /search for an address/i }).click();
   await page.getByRole("combobox").fill("100 Beacon");
   await page.getByRole("option", { name: /100 Beacon St/i }).click();
