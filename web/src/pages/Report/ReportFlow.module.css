@@ -93,19 +93,21 @@
   padding: var(--space-2);
 }
 
-/* Keeps the pin step's confirm action reachable without scrolling back
-   down past the map — pinned to the viewport bottom instead of sitting
-   inline after the map/instructions. */
+/* Keeps each step's primary action reachable without scrolling back down
+   past the map/content above it — pinned to the viewport bottom instead
+   of sitting inline after the step's own content. Used by every report
+   step that has a submit-style action (GPS, pin, address search, confirm). */
 .floatingActions {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  /* Above InstallPrompt's banner (z-index: 100) so this step's essential
+  /* Above InstallPrompt's banner (z-index: 100) so a step's essential
      confirm action always wins if both happen to be showing at once. */
   z-index: 150;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-4);
   flex-wrap: wrap;
   padding: var(--space-4) var(--space-4)
