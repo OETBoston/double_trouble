@@ -41,7 +41,7 @@ test("switching time-window presets re-requests stats for that window", async ({
   });
 
   await page.goto("/dashboard");
-  await expect(page.getByRole("button", { name: "Today" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Past 30 days" })).toHaveAttribute("aria-pressed", "true");
 
   await page.getByRole("button", { name: "Past 7 days" }).click();
   await expect(page.getByRole("button", { name: "Past 7 days" })).toHaveAttribute(
