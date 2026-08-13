@@ -163,7 +163,10 @@ function GpsStep({
         {message}
       </p>
       {status === "locating" && <div className={styles.spinner} aria-hidden="true" />}
-      <div className={styles.stepActions}>
+      {/* Reserves the space the floating bar below covers, so the last of
+          this step's own content isn't hidden behind it. */}
+      <div className={styles.floatingActionsSpacer} aria-hidden="true" />
+      <div className={styles.floatingActions}>
         {status === "error" && (
           <button className={styles.primaryAction} onClick={start}>
             Try again

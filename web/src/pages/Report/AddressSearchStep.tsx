@@ -117,7 +117,10 @@ export function AddressSearchStep({
           ))}
         </ul>
       )}
-      <div className={styles.stepActions}>
+      {/* Reserves the space the floating bar below covers, so the last of
+          the suggestion list isn't hidden behind it. */}
+      <div className={styles.floatingActionsSpacer} aria-hidden="true" />
+      <div className={styles.floatingActions}>
         <button className={styles.linkButton} onClick={onBack}>
           Choose a different method
         </button>

@@ -62,7 +62,10 @@ export function ConfirmStep({
         </p>
       )}
 
-      <div className={styles.stepActions}>
+      {/* Reserves the space the floating bar below covers, so the last of
+          the confirmation details isn't hidden behind it. */}
+      <div className={styles.floatingActionsSpacer} aria-hidden="true" />
+      <div className={styles.floatingActions}>
         <button className={styles.primaryAction} onClick={onConfirm} disabled={submitting}>
           {submitting ? "Submitting…" : "Submit anonymously"}
         </button>
