@@ -297,12 +297,15 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # The Cloud Run default URL includes an unpredictable hash
-          # component, so it can't be known ahead of time as a static
-          # variable the way PRODUCTION_FRONTEND_URL (a stable Firebase
-          # Hosting URL) can -- read it live from the deploy-api job
-          # instead of pre-setting it.
-          VITE_API_URL: ${{ needs.deploy-api.outputs.url }}
+          # Deliberately empty: an org policy blocks granting Cloud Run's
+          # allUsers invoker role, so the API can't be made public that
+          # way. Instead, web/firebase.json rewrites /api/** and /health
+          # straight to the (still-private) Cloud Run service using
+          # Hosting's own service identity -- so the frontend calls
+          # same-origin relative paths (e.g. fetch("/api/reports")) rather
+          # than an absolute Cloud Run URL. See web/src/api/client.ts,
+          # which falls back to this exact empty string in production.
+          VITE_API_URL: ""
           VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
 
       - id: auth

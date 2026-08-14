@@ -11,3 +11,4 @@ certs/
 test-results/
 playwright-report/
 blob-report/
+web/.firebase/
