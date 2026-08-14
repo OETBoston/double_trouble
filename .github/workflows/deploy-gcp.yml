@@ -297,15 +297,21 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # Deliberately empty: an org policy blocks granting Cloud Run's
-          # allUsers invoker role, so the API can't be made public that
-          # way. Instead, web/firebase.json rewrites /api/** and /health
-          # straight to the (still-private) Cloud Run service using
-          # Hosting's own service identity -- so the frontend calls
-          # same-origin relative paths (e.g. fetch("/api/reports")) rather
-          # than an absolute Cloud Run URL. See web/src/api/client.ts,
-          # which falls back to this exact empty string in production.
-          VITE_API_URL: ""
+          # The Cloud Run default URL includes an unpredictable hash
+          # component, so it can't be known ahead of time as a static
+          # variable the way PRODUCTION_FRONTEND_URL (a stable Firebase
+          # Hosting URL) can -- read it live from the deploy-api job
+          # instead of pre-setting it.
+          #
+          # (We tried routing this through a Firebase Hosting "run"
+          # rewrite instead, to avoid making Cloud Run public at all --
+          # but Hosting's automatic-authentication-to-Cloud-Run only
+          # seems to work for services Firebase deployed itself; requests
+          # it proxied to this independently-deployed service arrived
+          # with no Authorization header at all. Now that the org has
+          # granted a policy exception for allUsers on this service
+          # instead, going back to the simpler direct-URL approach.)
+          VITE_API_URL: ${{ needs.deploy-api.outputs.url }}
           VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
 
       - id: auth

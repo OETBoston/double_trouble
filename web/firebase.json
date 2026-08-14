@@ -4,20 +4,6 @@
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
-        "source": "/api/**",
-        "run": {
-          "serviceId": "boston-parking-api",
-          "region": "us-east1"
-        }
-      },
-      {
-        "source": "/health",
-        "run": {
-          "serviceId": "boston-parking-api",
-          "region": "us-east1"
-        }
-      },
-      {
         "source": "**",
         "destination": "/index.html"
       }
