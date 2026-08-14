@@ -17,19 +17,42 @@
 #     need Direct VPC egress configured to reach the database at all —
 #     not just the Cloud SQL connector on its own.
 #
-# Status as of the instance being created (console, not gcloud, since the
-# gcloud custom-tier flags kept colliding with org constraints):
+# Status: all one-time manual setup below is DONE. The numbered steps are
+# kept as reference (e.g. for reproducing this in another project), but
+# every box has been checked in parking-project-504815:
 #   [x] Cloud SQL instance: private IP, Shared VPC, PostgreSQL 18,
 #       Enterprise edition (not Enterprise Plus — that edition forces
 #       predefined db-perf-optimized-* tiers instead of a custom
 #       cpu/memory config), 1 vCPU / 4GB, region us-east1.
 #   [x] Artifact Registry repo (boston-parking, docker format, us-east1 —
 #       matches the Cloud SQL instance's region; Cloud Run and the
-#       migration Job below should both target this same region too).
-#   [ ] Everything else below this point.
+#       migration Job below both target this same region too).
+#   [x] Database, app user, and Secret Manager entry (step 3-4).
+#   [x] Workload Identity Federation set up end to end (step 6), including
+#       the deploy service account boston-parking-deployer.
+#   [x] roles/compute.networkUser granted to the deploy service account on
+#       subnet ss-vpc-host-sn-006 (network ss-vpc-host-nw-002, host
+#       project ss-host-project-001) — done by the host project's admin
+#       (step 6a). This was the last real blocker: without it the
+#       migration Job/Cloud Run can't attach to the Shared VPC subnet at
+#       deploy time and fail with a Prisma P1001 connection error.
+#   [x] Runtime service account boston-parking-runtime created and
+#       granted roles/secretmanager.secretAccessor + roles/cloudsql.client
+#       (step 6b).
+#   [x] Migration Cloud Run Job (boston-parking-migrate) bootstrap-created
+#       (step 7).
+#   [x] Firebase Hosting connected to parking-project-504815 (default
+#       site https://parking-project-504815.web.app); web/.firebaserc
+#       points at it (step 8).
+#   [x] All repo secrets and variables listed at the bottom of this
+#       comment are set in GitHub.
 #
-# None of the following can be done from this file — it's GCP console /
-# gcloud CLI work, once, before this workflow can run successfully:
+# Next step: trigger this workflow manually (Actions tab -> Deploy to GCP
+# -> Run workflow) as the real end-to-end test — everything up to now has
+# only been bootstrapped/verified manually, piece by piece.
+#
+# The numbered list below was the original one-time manual GCP console /
+# gcloud CLI work, kept for reference:
 #
 # 1. Create a GCP project (or use an existing one) and enable billing.
 #
@@ -151,7 +174,8 @@
 #    web/.firebaserc's project ID directly) to connect it to a Firebase
 #    Hosting site under the same GCP project.
 #
-# Repo secrets (Settings -> Secrets and variables -> Actions -> Secrets):
+# Repo secrets (Settings -> Secrets and variables -> Actions -> Secrets;
+# all set already — kept here as reference for their expected values):
 #   - GCP_WORKLOAD_IDENTITY_PROVIDER = provider resource name from step 6
 #   - GCP_SERVICE_ACCOUNT            = deploy service account email from step 6
 #   - VITE_MAPBOX_TOKEN              = the frontend's Mapbox public token
