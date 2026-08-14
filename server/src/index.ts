@@ -13,7 +13,10 @@ const port = Number(process.env.PORT ?? 4000);
 
 const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173").split(",");
 app.use(cors({ origin: allowedOrigins }));
-app.use(express.json());
+// Default 100kb limit is far too small once reports can carry a base64
+// photo; 10mb comfortably covers the ~6MB raw-file cap enforced on the
+// client after its own base64 inflation (~4/3x).
+app.use(express.json({ limit: "10mb" }));
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 app.use("/api/reports", reportsRouter);

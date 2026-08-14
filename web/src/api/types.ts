@@ -1,5 +1,13 @@
 export type LocationMethod = "GPS" | "MAP_PIN" | "ADDRESS_SEARCH";
 
+export type BlockedType = "BIKE_LANE" | "BUS_LANE" | "FIRE_HYDRANT" | "CROSSWALK" | "OTHER";
+
+export type VehicleType =
+  | "COMMERCIAL_VEHICLE"
+  | "RIDESHARE_DELIVERY"
+  | "PERSONAL_VEHICLE"
+  | "OTHER";
+
 export interface ReportPoint {
   id: string;
   latitude: number;
@@ -8,7 +16,18 @@ export interface ReportPoint {
   reportedAt: string;
 }
 
-export interface CreateReportInput {
+// All optional — a report is already complete with just a location, so none
+// of this supplementary detail should ever be required to submit one.
+export interface ReportDetails {
+  blockedType?: BlockedType;
+  blockedTypeOther?: string;
+  vehicleType?: VehicleType;
+  vehicleTypeOther?: string;
+  // Base64 image data URL (e.g. "data:image/jpeg;base64,...").
+  photo?: string;
+}
+
+export interface CreateReportInput extends ReportDetails {
   latitude: number;
   longitude: number;
   address?: string;

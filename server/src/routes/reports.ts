@@ -14,6 +14,10 @@ const createReportLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// A raw photo is capped at 6MB client-side; base64 inflates that by ~4/3,
+// plus some slack for the data URL prefix.
+const MAX_PHOTO_DATA_URL_LENGTH = 9_000_000;
+
 const createReportSchema = z.object({
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
@@ -22,6 +26,19 @@ const createReportSchema = z.object({
   // Device-local timestamp captured at the moment of the report. Falls back
   // to the server clock if omitted or unparsable.
   reportedAt: z.string().datetime().optional(),
+  // Everything below is optional supplementary detail — a report is already
+  // complete with just a location, so none of this should ever be required.
+  blockedType: z.enum(["BIKE_LANE", "BUS_LANE", "FIRE_HYDRANT", "CROSSWALK", "OTHER"]).optional(),
+  blockedTypeOther: z.string().trim().min(1).max(120).optional(),
+  vehicleType: z
+    .enum(["COMMERCIAL_VEHICLE", "RIDESHARE_DELIVERY", "PERSONAL_VEHICLE", "OTHER"])
+    .optional(),
+  vehicleTypeOther: z.string().trim().min(1).max(120).optional(),
+  photo: z
+    .string()
+    .max(MAX_PHOTO_DATA_URL_LENGTH, "photo is too large")
+    .regex(/^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/]+=*$/, "photo must be an image data URL")
+    .optional(),
 });
 
 // Reports carry no user/device identifier by design — anonymous by default.
@@ -31,7 +48,18 @@ reportsRouter.post("/", createReportLimiter, async (req, res) => {
     return res.status(400).json({ error: "invalid_report", details: parsed.error.flatten() });
   }
 
-  const { latitude, longitude, address, locationMethod, reportedAt } = parsed.data;
+  const {
+    latitude,
+    longitude,
+    address,
+    locationMethod,
+    reportedAt,
+    blockedType,
+    blockedTypeOther,
+    vehicleType,
+    vehicleTypeOther,
+    photo,
+  } = parsed.data;
 
   const report = await prisma.report.create({
     data: {
@@ -40,6 +68,14 @@ reportsRouter.post("/", createReportLimiter, async (req, res) => {
       address,
       locationMethod,
       reportedAt: reportedAt ? new Date(reportedAt) : new Date(),
+      blockedType,
+      // Only worth keeping the free-text alongside its matching "Other"
+      // selection — a stray value here shouldn't outlive its enum picking
+      // a different option.
+      blockedTypeOther: blockedType === "OTHER" ? blockedTypeOther : undefined,
+      vehicleType,
+      vehicleTypeOther: vehicleType === "OTHER" ? vehicleTypeOther : undefined,
+      photo,
     },
     select: { id: true, reportedAt: true },
   });

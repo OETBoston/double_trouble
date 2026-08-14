@@ -13,6 +13,21 @@ enum LocationMethod {
   ADDRESS_SEARCH
 }
 
+enum BlockedType {
+  BIKE_LANE
+  BUS_LANE
+  FIRE_HYDRANT
+  CROSSWALK
+  OTHER
+}
+
+enum VehicleType {
+  COMMERCIAL_VEHICLE
+  RIDESHARE_DELIVERY
+  PERSONAL_VEHICLE
+  OTHER
+}
+
 // Anonymous double-parking report. Deliberately has no user/device identifier
 // so reports cannot be traced back to a reporter.
 model Report {
@@ -23,6 +38,19 @@ model Report {
   locationMethod LocationMethod
   reportedAt     DateTime       @default(now())
   createdAt      DateTime       @default(now())
+
+  // Everything below is optional supplementary detail — the report is
+  // already complete with just a location, so none of this should ever
+  // block submission.
+  blockedType      BlockedType?
+  blockedTypeOther String?
+  vehicleType      VehicleType?
+  vehicleTypeOther String?
+  // Base64 data URL of a user-submitted photo. Stored directly in Postgres
+  // for now rather than a dedicated object store (no bucket set up yet) —
+  // fine at MVP scale, but worth migrating to Cloud Storage if photo
+  // volume/size ever makes rows or backups unwieldy.
+  photo            String?
 
   @@index([reportedAt])
   @@index([latitude, longitude])

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { submitReport } from "../../api/client";
-import type { LocationMethod } from "../../api/types";
+import type { LocationMethod, ReportDetails } from "../../api/types";
 import { AddressSearchStep } from "./AddressSearchStep";
 import { ConfirmStep } from "./ConfirmStep";
 import { LocationMethodPicker } from "./LocationMethodPicker";
@@ -34,28 +34,32 @@ export function ReportFlow() {
     setStep("confirm");
   }, []);
 
-  const handleSubmit = useCallback(async () => {
-    if (!location) return;
-    setSubmitting(true);
-    setSubmitError(null);
-    try {
-      await submitReport({
-        latitude: location.latitude,
-        longitude: location.longitude,
-        address: location.address ?? undefined,
-        locationMethod: location.method,
-        reportedAt: new Date().toISOString(),
-      });
-      // Brief confirmation buzz on devices that support it; a no-op
-      // elsewhere (desktop browsers simply lack navigator.vibrate).
-      navigator.vibrate?.(60);
-      setStep("success");
-    } catch {
-      setSubmitError("We couldn't submit your report. Check your connection and try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  }, [location]);
+  const handleSubmit = useCallback(
+    async (details: ReportDetails) => {
+      if (!location) return;
+      setSubmitting(true);
+      setSubmitError(null);
+      try {
+        await submitReport({
+          latitude: location.latitude,
+          longitude: location.longitude,
+          address: location.address ?? undefined,
+          locationMethod: location.method,
+          reportedAt: new Date().toISOString(),
+          ...details,
+        });
+        // Brief confirmation buzz on devices that support it; a no-op
+        // elsewhere (desktop browsers simply lack navigator.vibrate).
+        navigator.vibrate?.(60);
+        setStep("success");
+      } catch {
+        setSubmitError("We couldn't submit your report. Check your connection and try again.");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [location]
+  );
 
   const startOver = useCallback(() => {
     setLocation(null);
