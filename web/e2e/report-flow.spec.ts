@@ -55,6 +55,60 @@ test("submits a report via address search and shows the success screen", async (
   await expect(page.getByRole("heading", { name: "Report a Double-Parked Vehicle" })).toBeVisible();
 });
 
+test("submits the optional blocked-type, vehicle-type, and photo details", async ({ page }) => {
+  await page.route("**/api.mapbox.com/geocoding/**", (route) =>
+    route.fulfill({
+      json: {
+        features: [
+          { id: "abc", place_name: "1 City Hall Square, Boston, MA", center: [-71.0589, 42.3601] },
+        ],
+      },
+    })
+  );
+
+  let submittedBody: Record<string, unknown> | undefined;
+  await page.route("**/api/reports", (route) => {
+    submittedBody = route.request().postDataJSON();
+    route.fulfill({ status: 201, json: { id: "report-1", reportedAt: "2026-01-01T00:00:00.000Z" } });
+  });
+
+  await page.goto("/");
+  await page.getByRole("button", { name: /search for an address/i }).click();
+  await page.getByRole("combobox").fill("1 City Hall");
+  await page.getByRole("option", { name: /1 City Hall Square/i }).click();
+  await expect(page.getByRole("heading", { name: "Confirm your report" })).toBeVisible();
+
+  // Both disclosures start collapsed.
+  await expect(page.getByRole("radio", { name: "Bike lane" })).toBeHidden();
+  // Scoped to <summary> — the fieldset's (visually-hidden) <legend> repeats
+  // the same question text for screen readers, which would otherwise match
+  // too.
+  await page.locator("summary", { hasText: "What's being blocked?" }).click();
+  await page.getByRole("radio", { name: "Bike lane" }).check();
+
+  await page.locator("summary", { hasText: "Type of vehicle" }).click();
+  await page.getByRole("radio", { name: /rideshare/i }).check();
+
+  // 1x1 transparent PNG.
+  const pngBytes = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+    "base64"
+  );
+  await page
+    .getByLabel(/choose a file/i)
+    .setInputFiles({ name: "car.png", mimeType: "image/png", buffer: pngBytes });
+  await expect(page.getByAltText(/preview of the photo/i)).toBeVisible();
+
+  await page.getByRole("button", { name: "Submit anonymously" }).click();
+  await expect(page.getByRole("heading", { name: "Report received" })).toBeVisible();
+
+  expect(submittedBody).toMatchObject({
+    blockedType: "BIKE_LANE",
+    vehicleType: "RIDESHARE_DELIVERY",
+  });
+  expect(submittedBody?.photo).toMatch(/^data:image\//);
+});
+
 test("shows an error and stays on the confirm step if submission fails", async ({ page }) => {
   await page.route("**/api.mapbox.com/geocoding/**", (route) =>
     route.fulfill({

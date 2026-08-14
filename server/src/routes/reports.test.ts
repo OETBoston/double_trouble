@@ -24,7 +24,10 @@ beforeEach(async () => {
   const { reportsRouter } = await import("./reports.js");
   buildApp = () => {
     const app = express();
-    app.use(express.json());
+    // Mirrors index.ts's raised limit so the oversized-photo test below
+    // exercises this route's own Zod size check, not just body-parser's
+    // much smaller default.
+    app.use(express.json({ limit: "10mb" }));
     app.use("/api/reports", reportsRouter);
     return app;
   };
@@ -116,6 +119,74 @@ describe("POST /api/reports", () => {
     const res = await request(buildApp())
       .post("/api/reports")
       .send({ ...validBody, reportedAt: "not-a-date" });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("accepts and persists the optional blocked-type, vehicle-type, and photo fields", async () => {
+    prisma.report.create.mockResolvedValue({ id: "id", reportedAt: new Date() });
+    const photo = "data:image/jpeg;base64,/9j/4AAQSkZJRg==";
+
+    await request(buildApp())
+      .post("/api/reports")
+      .send({
+        ...validBody,
+        blockedType: "BIKE_LANE",
+        vehicleType: "RIDESHARE_DELIVERY",
+        photo,
+      });
+
+    const call = prisma.report.create.mock.calls[0][0];
+    expect(call.data.blockedType).toBe("BIKE_LANE");
+    expect(call.data.vehicleType).toBe("RIDESHARE_DELIVERY");
+    expect(call.data.photo).toBe(photo);
+  });
+
+  it('keeps the "other" free-text only when its matching enum is OTHER', async () => {
+    prisma.report.create.mockResolvedValue({ id: "id", reportedAt: new Date() });
+
+    await request(buildApp())
+      .post("/api/reports")
+      .send({
+        ...validBody,
+        blockedType: "OTHER",
+        blockedTypeOther: "Loading dock",
+        vehicleType: "PERSONAL_VEHICLE",
+        // Sent despite vehicleType not being OTHER — should be dropped.
+        vehicleTypeOther: "should be ignored",
+      });
+
+    const call = prisma.report.create.mock.calls[0][0];
+    expect(call.data.blockedTypeOther).toBe("Loading dock");
+    expect(call.data.vehicleTypeOther).toBeUndefined();
+  });
+
+  it("rejects an unrecognized blockedType or vehicleType", async () => {
+    const badBlocked = await request(buildApp())
+      .post("/api/reports")
+      .send({ ...validBody, blockedType: "MOON" });
+    expect(badBlocked.status).toBe(400);
+
+    const badVehicle = await request(buildApp())
+      .post("/api/reports")
+      .send({ ...validBody, vehicleType: "SPACESHIP" });
+    expect(badVehicle.status).toBe(400);
+  });
+
+  it("rejects a photo that isn't an image data URL", async () => {
+    const res = await request(buildApp())
+      .post("/api/reports")
+      .send({ ...validBody, photo: "not-a-data-url" });
+
+    expect(res.status).toBe(400);
+    expect(prisma.report.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects an oversized photo", async () => {
+    const hugePhoto = "data:image/jpeg;base64," + "A".repeat(9_000_001);
+    const res = await request(buildApp())
+      .post("/api/reports")
+      .send({ ...validBody, photo: hugePhoto });
 
     expect(res.status).toBe(400);
   });
