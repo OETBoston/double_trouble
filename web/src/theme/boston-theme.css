@@ -32,7 +32,7 @@
   --space-7: 48px;
 
   --font-heading: "Montserrat", "Helvetica Neue", Arial, sans-serif;
-  --font-body: "Lora", Georgia, "Times New Roman", serif;
+  /*--font-body: "Lora", Georgia, "Times New Roman", serif;*/
 
   color-scheme: light;
 }
