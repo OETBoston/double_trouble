@@ -74,11 +74,7 @@ export function ReportFlow() {
           <section className={styles.hero} aria-labelledby="report-heading">
             <h1 id="report-heading">Report a Double-Parked Vehicle</h1>
             <p className={styles.lead}>
-              See a vehicle illegally double-parked in Boston? Report it in under a minute — no
-              account, no personal information required.
-            </p>
-            <p className={styles.anonymousNote}>
-              Reports are submitted anonymously. We only record the location and time you provide.
+              See a vehicle illegally double-parked in Boston? Report it in under a minute, anonymously.
             </p>
           </section>
           <LocationMethodPicker onChoose={handleMethodChosen} />
