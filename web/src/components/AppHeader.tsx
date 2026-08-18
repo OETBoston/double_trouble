@@ -5,9 +5,10 @@ export function AppHeader() {
   return (
     <header className={styles.header}>
       <div className={styles.brandRow}>
-        <span className={styles.cityTag} aria-hidden="true">
-          CITY OF BOSTON
-        </span>
+        {/* The logo itself reads "City of Boston" (with the city's red
+            underline mark), so it carries that meaning on its own -- no
+            separate text label needed alongside it. */}
+        <img src="/primary-logo.png" alt="City of Boston" className={styles.logo} />
         <span className={styles.title}>Double Parking Reporter</span>
       </div>
       <nav className={styles.nav} aria-label="Primary">

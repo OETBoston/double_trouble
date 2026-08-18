@@ -1,6 +1,10 @@
 .header {
-  background: var(--boston-navy-800);
-  color: white;
+  background: white;
+  color: var(--boston-navy-800);
+  /* A white header needs its own separation from the page background
+     (--color-bg is a very light gray) since it can no longer rely on a
+     dark fill to read as a distinct band. */
+  border-bottom: 1px solid var(--color-border);
   /* Keeps the brand row clear of the iPhone notch/dynamic island when
      installed as a standalone app (requires viewport-fit=cover, already
      set in index.html). */
@@ -9,27 +13,22 @@
 
 .brandRow {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-3);
   padding: 0 var(--space-5) var(--space-3);
   flex-wrap: wrap;
 }
 
-.cityTag {
-  font-family: var(--font-heading);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  /* White rather than the new optimistic blue -- blue-on-navy only clears
-     WCAG's 3:1 non-text contrast floor, not the 4.5:1 normal-text minimum
-     this label needs at this size/weight. */
-  color: white;
+.logo {
+  height: 32px;
+  width: auto;
 }
 
 .title {
   font-family: var(--font-heading);
   font-size: 1.15rem;
   font-weight: 700;
+  color: var(--boston-blue-optimistic);
 }
 
 /* Two equal-width buttons spanning the full header width, like a tab bar,
@@ -43,22 +42,30 @@
 .navLinkActive {
   flex: 1;
   text-align: center;
-  color: white;
   text-decoration: none;
   padding: var(--space-3) var(--space-4);
   font-weight: 600;
 }
 
-.navLink:hover {
-  background: var(--boston-navy-700);
+.navLink {
+  background: #f2f2f2;
+  color: var(--boston-navy-800);
 }
 
-/* The default blue focus ring falls below WCAG 1.4.11's 3:1 non-text
-   contrast minimum against this dark navy background; optimistic blue
-   clears it (just -- roughly 3.1:1). */
-.navLink:focus-visible,
-.navLinkActive:focus-visible {
+.navLink:hover {
+  background: var(--boston-navy-100);
+}
+
+/* Each state needs its own outline color -- a single shared color can't
+   clear WCAG 1.4.11's 3:1 non-text contrast minimum against both a light
+   gray AND the blue it sits next to at the same time. */
+.navLink:focus-visible {
   outline-color: var(--boston-blue-optimistic);
+  outline-offset: -3px;
+}
+
+.navLinkActive:focus-visible {
+  outline-color: white;
   outline-offset: -3px;
 }
 
