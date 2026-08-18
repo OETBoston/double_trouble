@@ -155,14 +155,15 @@ function GpsStep({
   }, []);
 
   return (
-    <section aria-labelledby="gps-heading" className={styles.stepSection}>
-      <h2 id="gps-heading">Using your current location</h2>
-      <p role="status" aria-live="polite">
-        {message}
-      </p>
-      {status === "locating" && <div className={styles.spinner} aria-hidden="true" />}
-      {/* Reserves the space the floating bar below covers, so the last of
-          this step's own content isn't hidden behind it. */}
+    <>
+      <section aria-labelledby="gps-heading" className={styles.stepSection}>
+        <h2 id="gps-heading">Using your current location</h2>
+        <p role="status" aria-live="polite">
+          {message}
+        </p>
+        {status === "locating" && <div className={styles.spinner} aria-hidden="true" />}
+      </section>
+      {/* Outside the card on purpose -- see MapPinStep.tsx for why. */}
       <div className={styles.floatingActionsSpacer} aria-hidden="true" />
       <div className={styles.floatingActions}>
         {status === "error" && (
@@ -174,6 +175,6 @@ function GpsStep({
           Choose a different method
         </button>
       </div>
-    </section>
+    </>
   );
 }

@@ -132,6 +132,9 @@
 
 .methodIcon {
   font-size: 1.8rem;
+  /* The card is a column flex with everything else left-aligned; this
+     centers just the icon within the card's full width instead. */
+  align-self: center;
 }
 
 .methodLabel {

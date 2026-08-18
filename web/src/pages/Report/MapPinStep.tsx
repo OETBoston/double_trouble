@@ -101,35 +101,40 @@ export function MapPinStep({
   }, [selected, onResolved]);
 
   return (
-    <section aria-labelledby="pin-heading" className={styles.stepSection}>
-      <h2 id="pin-heading">Drop a pin at the location</h2>
-      <p id="pin-instructions">
-        Tap or click the map to place a pin. Keyboard users: focus the map, use the arrow keys to
-        move it, then press Enter to drop a pin at the center crosshair. You can drag an existing
-        pin to fine-tune it.
-      </p>
-      <div className={styles.mapWrapper}>
-        <div
-          ref={containerRef}
-          className={styles.map}
-          tabIndex={0}
-          role="application"
-          aria-label="Map of Boston. Use arrow keys to move, Enter to drop a pin at the crosshair."
-          aria-describedby="pin-instructions"
-          onKeyDown={handleMapKeyDown}
-        />
-        <div className={styles.crosshair} aria-hidden="true" />
-      </div>
-      {/* Screen readers still need to know a pin landed — sighted users get
-          that from the marker appearing on the map itself, so this stays
-          visually hidden rather than shown as on-screen text. Deliberately
-          doesn't read out raw coordinates, which aren't meaningful to
-          someone listening rather than looking at a map. */}
-      <p role="status" aria-live="polite" className="visually-hidden">
-        {selected ? "Pin placed." : ""}
-      </p>
-      {/* Reserves the space the floating bar below covers, so the last of
-          the map/instructions isn't hidden behind it when scrolled down. */}
+    <>
+      <section aria-labelledby="pin-heading" className={styles.stepSection}>
+        <h2 id="pin-heading">Drop a pin at the location</h2>
+        <p id="pin-instructions">
+          Tap or click the map to place a pin. Keyboard users: focus the map, use the arrow keys
+          to move it, then press Enter to drop a pin at the center crosshair. You can drag an
+          existing pin to fine-tune it.
+        </p>
+        <div className={styles.mapWrapper}>
+          <div
+            ref={containerRef}
+            className={styles.map}
+            tabIndex={0}
+            role="application"
+            aria-label="Map of Boston. Use arrow keys to move, Enter to drop a pin at the crosshair."
+            aria-describedby="pin-instructions"
+            onKeyDown={handleMapKeyDown}
+          />
+          <div className={styles.crosshair} aria-hidden="true" />
+        </div>
+        {/* Screen readers still need to know a pin landed — sighted users get
+            that from the marker appearing on the map itself, so this stays
+            visually hidden rather than shown as on-screen text. Deliberately
+            doesn't read out raw coordinates, which aren't meaningful to
+            someone listening rather than looking at a map. */}
+        <p role="status" aria-live="polite" className="visually-hidden">
+          {selected ? "Pin placed." : ""}
+        </p>
+      </section>
+      {/* Outside the card on purpose: floatingActions is fixed-position, so
+          it doesn't need to be nested inside .stepSection to render
+          correctly, and keeping the spacer out here too means any reserved
+          space shows up as plain page background instead of dead space
+          inside the white card. */}
       <div className={styles.floatingActionsSpacer} aria-hidden="true" />
       <div className={styles.floatingActions}>
         <button className={styles.primaryAction} disabled={!selected || resolving} onClick={confirmLocation}>
@@ -139,6 +144,6 @@ export function MapPinStep({
           Choose a different method
         </button>
       </div>
-    </section>
+    </>
   );
 }
