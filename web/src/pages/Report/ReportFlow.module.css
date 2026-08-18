@@ -140,6 +140,10 @@
 .methodLabel {
   font-weight: 700;
   color: var(--boston-navy-800);
+  /* Centered like the icon above it; the description below stays
+     left-aligned. */
+  align-self: center;
+  text-align: center;
 }
 
 .methodDescription {
