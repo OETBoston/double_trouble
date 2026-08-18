@@ -136,8 +136,12 @@ export function MapPinStep({
           space shows up as plain page background instead of dead space
           inside the white card. */}
       <div className={styles.floatingActionsSpacer} aria-hidden="true" />
-      <div className={styles.floatingActions}>
-        <button className={styles.primaryAction} disabled={!selected || resolving} onClick={confirmLocation}>
+      <div className={`${styles.floatingActions} ${styles.floatingActionsStacked}`}>
+        <button
+          className={`${styles.primaryAction} ${styles.primaryActionBlue}`}
+          disabled={!selected || resolving}
+          onClick={confirmLocation}
+        >
           {resolving ? "Looking up address…" : "Use this location"}
         </button>
         <button className={styles.linkButton} onClick={onBack}>

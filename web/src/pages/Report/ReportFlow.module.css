@@ -158,10 +158,12 @@
 }
 
 .methodLabel {
+  /* Slightly larger than .methodDescription's 1rem, so the title reads
+     as the more prominent line of the two. */
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--boston-navy-800);
-  /* Centered like the icon above it; the description below stays
-     left-aligned. */
+  /* Centered like the icon above it. */
   align-self: center;
   text-align: center;
 }
@@ -169,6 +171,9 @@
 .methodDescription {
   font-size: 1rem;
   color: var(--color-text-muted);
+  /* Centered like the icon/title above it. */
+  align-self: center;
+  text-align: center;
 }
 
 .mapWrapper {
