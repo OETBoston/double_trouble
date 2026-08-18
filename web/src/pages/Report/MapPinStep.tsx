@@ -26,7 +26,7 @@ export function MapPinStep({
   const placeMarker = useCallback((lngLat: mapboxgl.LngLat) => {
     if (!mapRef.current) return;
     if (!markerRef.current) {
-      markerRef.current = new mapboxgl.Marker({ draggable: true, color: "#FFB81C" })
+      markerRef.current = new mapboxgl.Marker({ draggable: true, color: "#1871bd" })
         .setLngLat(lngLat)
         .addTo(mapRef.current);
       markerRef.current.on("dragend", () => {

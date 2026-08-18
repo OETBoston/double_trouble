@@ -6,7 +6,7 @@ import styles from "./ReportFlow.module.css";
 
 function staticMapUrl(lat: number, lng: number): string {
   const token = import.meta.env.VITE_MAPBOX_TOKEN;
-  return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-l-marker+FFB81C(${lng},${lat})/${lng},${lat},15,0/500x260@2x?access_token=${token}`;
+  return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-l-marker+1871BD(${lng},${lat})/${lng},${lat},15,0/500x260@2x?access_token=${token}`;
 }
 
 const BLOCKED_TYPE_OPTIONS: Array<{ value: BlockedType; label: string }> = [
