@@ -24,7 +24,7 @@
 
 .anonymousNote {
   margin-top: var(--space-4);
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--color-text-muted);
 }
 
@@ -70,7 +70,7 @@
   color: var(--boston-navy-700);
   text-decoration: underline;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 1rem;
   padding: var(--space-2);
 }
 
@@ -106,7 +106,7 @@
 
 .methodGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--space-4);
   margin-top: var(--space-4);
 }
@@ -140,7 +140,7 @@
 }
 
 .methodDescription {
-  font-size: 0.88rem;
+  font-size: 1rem;
   color: var(--color-text-muted);
 }
 
@@ -252,7 +252,7 @@
 }
 
 .confirmDetails dt {
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -272,7 +272,7 @@
 
 .optionalTag {
   font-weight: 400;
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -340,7 +340,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 0.95rem;
+  font-size: 1rem;
   cursor: pointer;
 }
 

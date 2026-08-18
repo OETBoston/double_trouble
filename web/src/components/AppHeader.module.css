@@ -20,7 +20,10 @@
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: var(--boston-gold-500);
+  /* White rather than the new optimistic blue -- blue-on-navy only clears
+     WCAG's 3:1 non-text contrast floor, not the 4.5:1 normal-text minimum
+     this label needs at this size/weight. */
+  color: white;
 }
 
 .title {
@@ -51,14 +54,15 @@
 }
 
 /* The default blue focus ring falls below WCAG 1.4.11's 3:1 non-text
-   contrast minimum against this dark navy background; gold clears it. */
+   contrast minimum against this dark navy background; optimistic blue
+   clears it (just -- roughly 3.1:1). */
 .navLink:focus-visible,
 .navLinkActive:focus-visible {
-  outline-color: var(--boston-gold-500);
+  outline-color: var(--boston-blue-optimistic);
   outline-offset: -3px;
 }
 
 .navLinkActive {
-  background: var(--boston-gold-500);
-  color: var(--boston-navy-900);
+  background: var(--boston-blue-optimistic);
+  color: white;
 }
