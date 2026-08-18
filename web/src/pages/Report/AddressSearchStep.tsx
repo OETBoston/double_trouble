@@ -73,58 +73,59 @@ export function AddressSearchStep({
   );
 
   return (
-    <section aria-labelledby="search-heading" className={styles.stepSection}>
-      <h2 id="search-heading">Search for the address</h2>
-      <label htmlFor="address-input" className={styles.fieldLabel}>
-        Street address in Boston
-      </label>
-      <input
-        id="address-input"
-        type="text"
-        role="combobox"
-        aria-expanded={suggestions.length > 0}
-        aria-controls="address-listbox"
-        aria-autocomplete="list"
-        aria-activedescendant={activeIndex >= 0 ? `address-option-${activeIndex}` : undefined}
-        className={styles.textInput}
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="e.g. 1 City Hall Square"
-        autoComplete="off"
-      />
-      <p role="status" aria-live="polite" className="visually-hidden">
-        {loading
-          ? "Searching…"
-          : suggestions.length
-            ? `${suggestions.length} suggestions available`
-            : ""}
-      </p>
-      {error && <p className={styles.errorText}>{error}</p>}
-      {suggestions.length > 0 && (
-        <ul id="address-listbox" role="listbox" className={styles.suggestionList}>
-          {suggestions.map((s, i) => (
-            <li
-              key={s.id}
-              id={`address-option-${i}`}
-              role="option"
-              aria-selected={i === activeIndex}
-              className={i === activeIndex ? styles.suggestionActive : styles.suggestion}
-              onMouseDown={() => selectSuggestion(s)}
-            >
-              {s.placeName}
-            </li>
-          ))}
-        </ul>
-      )}
-      {/* Reserves the space the floating bar below covers, so the last of
-          the suggestion list isn't hidden behind it. */}
+    <>
+      <section aria-labelledby="search-heading" className={styles.stepSection}>
+        <h2 id="search-heading">Search for the address</h2>
+        <label htmlFor="address-input" className={styles.fieldLabel}>
+          Street address in Boston
+        </label>
+        <input
+          id="address-input"
+          type="text"
+          role="combobox"
+          aria-expanded={suggestions.length > 0}
+          aria-controls="address-listbox"
+          aria-autocomplete="list"
+          aria-activedescendant={activeIndex >= 0 ? `address-option-${activeIndex}` : undefined}
+          className={styles.textInput}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="e.g. 1 City Hall Square"
+          autoComplete="off"
+        />
+        <p role="status" aria-live="polite" className="visually-hidden">
+          {loading
+            ? "Searching…"
+            : suggestions.length
+              ? `${suggestions.length} suggestions available`
+              : ""}
+        </p>
+        {error && <p className={styles.errorText}>{error}</p>}
+        {suggestions.length > 0 && (
+          <ul id="address-listbox" role="listbox" className={styles.suggestionList}>
+            {suggestions.map((s, i) => (
+              <li
+                key={s.id}
+                id={`address-option-${i}`}
+                role="option"
+                aria-selected={i === activeIndex}
+                className={i === activeIndex ? styles.suggestionActive : styles.suggestion}
+                onMouseDown={() => selectSuggestion(s)}
+              >
+                {s.placeName}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      {/* Outside the card on purpose -- see MapPinStep.tsx for why. */}
       <div className={styles.floatingActionsSpacer} aria-hidden="true" />
       <div className={styles.floatingActions}>
         <button className={styles.linkButton} onClick={onBack}>
           Choose a different method
         </button>
       </div>
-    </section>
+    </>
   );
 }

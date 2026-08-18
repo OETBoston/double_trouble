@@ -54,8 +54,8 @@ export function MetricsPanel({ stats }: { stats: Stats }) {
           <ResponsiveContainer>
             <BarChart data={hourData} aria-label="Bar chart of reports by hour of day">
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 11 }} interval={2} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+              <XAxis dataKey="label" tick={{ fontSize: 16 }} interval={2} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 16 }} />
               <Tooltip />
               <Bar dataKey="count" fill="#0c2340" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -86,8 +86,8 @@ export function MetricsPanel({ stats }: { stats: Stats }) {
           <ResponsiveContainer>
             <LineChart data={stats.trend} aria-label="Line chart of report volume over time">
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+              <XAxis dataKey="date" tick={{ fontSize: 16 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 16 }} />
               <Tooltip />
               <Line type="monotone" dataKey="count" stroke="#c8102e" strokeWidth={2} dot={false} />
             </LineChart>

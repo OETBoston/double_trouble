@@ -1,16 +1,14 @@
 :root {
-  /* City of Boston-inspired civic palette. Navy/gold pairing meets WCAG AA
+  /* City of Boston-inspired civic palette. Navy/blue pairing meets WCAG AA
      contrast against white and against each other at the sizes used below. */
   --boston-navy-900: #071426;
   --boston-navy-800: #0c2340;
   --boston-navy-700: #163862;
   --boston-navy-100: #e7ecf3;
-  --boston-gold-500: #ffb81c;
-  --boston-gold-700: #a86e00;
   --boston-red-600: #c8102e;
   --boston-green-700: #157a4a;
-  --boston-blue-optimistic: #288be4;
-  --boston-blue-optimistic-hover: #1d6fb8;
+  --boston-blue-optimistic: #1871bd;
+  --boston-blue-optimistic-hover: #1460a1;
 
   --color-bg: #f6f7f9;
   --color-surface: #ffffff;
