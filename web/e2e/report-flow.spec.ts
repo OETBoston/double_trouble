@@ -51,7 +51,7 @@ test("submits a report via address search and shows the success screen", async (
     locationMethod: "ADDRESS_SEARCH",
   });
 
-  await page.getByRole("button", { name: "Report another car" }).click();
+  await page.getByRole("button", { name: "Report another vehicle" }).click();
   await expect(page.getByRole("heading", { name: "Report a Double-Parked Vehicle" })).toBeVisible();
 });
 

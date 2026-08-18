@@ -257,8 +257,12 @@ export function ConfirmStep({
       </section>
       {/* Outside the card on purpose -- see MapPinStep.tsx for why. */}
       <div className={styles.floatingActionsSpacer} aria-hidden="true" />
-      <div className={styles.floatingActions}>
-        <button className={styles.primaryAction} onClick={handleConfirm} disabled={submitting}>
+      <div className={`${styles.floatingActions} ${styles.floatingActionsStacked}`}>
+        <button
+          className={`${styles.primaryAction} ${styles.primaryActionBlue}`}
+          onClick={handleConfirm}
+          disabled={submitting}
+        >
           {submitting ? "Submitting…" : "Submit anonymously"}
         </button>
         <button className={styles.linkButton} onClick={onBack} disabled={submitting}>

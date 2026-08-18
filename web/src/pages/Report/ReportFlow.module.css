@@ -64,6 +64,18 @@
   cursor: not-allowed;
 }
 
+/* Modifier for the specific primary actions that should read as the
+   flow's main call-to-action (submit, report-another) rather than an
+   in-flow step confirmation -- combined with .primaryAction, not a
+   replacement for it. */
+.primaryActionBlue {
+  background: var(--boston-blue-optimistic);
+}
+
+.primaryActionBlue:hover:not(:disabled) {
+  background: var(--boston-blue-optimistic-hover);
+}
+
 .linkButton {
   background: transparent;
   border: none;
@@ -102,6 +114,14 @@
    the page's own content when scrolled to the bottom. */
 .floatingActionsSpacer {
   height: 96px;
+}
+
+/* Confirm step only: stacks its two actions instead of the usual
+   side-by-side row, with "Change location method" under the submit
+   button rather than next to it. Combined with .floatingActions, not a
+   replacement for it. */
+.floatingActionsStacked {
+  flex-direction: column;
 }
 
 .methodGrid {
@@ -349,12 +369,16 @@
   gap: var(--space-2);
   font-size: 1rem;
   cursor: pointer;
+  /* Whole row is the tap target, not just the visual radio dot -- the
+     label already forwards clicks/taps anywhere on it to the input. */
+  min-height: 44px;
 }
 
 .radioOption input {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .photoSection {
@@ -429,4 +453,15 @@
   align-items: center;
   justify-content: center;
   margin: 0 auto var(--space-4);
+}
+
+/* Report received page: center the heading/body text and the action
+   button below it, rather than the app's usual left-aligned step
+   copy. */
+.successSection {
+  text-align: center;
+}
+
+.successSection .stepActions {
+  justify-content: center;
 }
